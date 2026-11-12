@@ -739,6 +739,9 @@ ul, ol { margin: 0 0 1rem 1.25rem; }
 }
 
 .hero-feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
 }
 
