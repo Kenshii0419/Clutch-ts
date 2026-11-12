@@ -101,8 +101,7 @@ export function renderHeader({ currentPage: page } = {}) {
   header.innerHTML =
     '<div class="header-inner">' +
     '<a href="index.html" class="brand">' +
-    '<span class="brand-mark" aria-hidden="true">&#10027;</span>' +
-    '<span>YouMadeIt</span>' +
+    '<img src="/images/YouMadeIt_-removebg-preview.png" alt="YouMadeIt" class="brand-logo">' +
     '</a>' +
     '<ul class="nav-list" aria-label="Main navigation"></ul>' +
     '<div class="nav-actions">' +
