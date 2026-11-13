@@ -101,7 +101,7 @@ export function renderHeader({ currentPage: page } = {}) {
   header.innerHTML =
     '<div class="header-inner">' +
     '<a href="index.html" class="brand">' +
-    '<img src="/images/YouMadeIt_-removebg-preview.png" alt="YouMadeIt" class="brand-logo">' +
+    '<img src="/images/YouMadeIt!.png" alt="YouMadeIt" class="brand-logo">' +
     '</a>' +
     '<ul class="nav-list" aria-label="Main navigation"></ul>' +
     '<div class="nav-actions">' +
@@ -210,7 +210,7 @@ function injectFooterCornerLogo() {
   const bottom = document.querySelector('.site-footer .footer-bottom');
   if (!bottom || bottom.querySelector('.footer-corner-logo')) return;
   const img = document.createElement('img');
-  img.src = '/images/YouMadeIt_-removebg-preview.png';
+  img.src = '/images/YouMadeIt!.png';
   img.alt = '';
   img.className = 'footer-corner-logo';
   img.setAttribute('aria-hidden', 'true');
