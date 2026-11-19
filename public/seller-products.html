@@ -16,8 +16,13 @@
   renderHeader({ currentPage: 'seller' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section">
-  <h2>Your products</h2>
+<div class="container section warm-bg">
+  <div class="section-header" style="margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-2);">
+    <div>
+      <h2 class="section-title">Your products</h2>
+    </div>
+    <a href="#" id="btn-add-product" class="btn btn-primary" style="margin-left: auto;">+ Add a product</a>
+  </div>
   <div id="seller-products-require-auth" class="seller-entry" style="display:none">
     <h2>Sign in to manage your listings</h2>
     <p>Open your maker workspace to add products, inventory, and photos.</p>
@@ -27,7 +32,6 @@
     </div>
   </div>
   <div id="seller-products-wrap" class="content-box" style="display:none">
-    <a href="#" id="btn-add-product" class="btn btn-primary" style="margin-bottom:1rem">+ Add a product</a>
     <div id="products-table-wrap" class="table-wrap"></div>
     <div id="products-empty" class="empty-state" style="display:none"><h2>No products yet</h2><p><a href="#" id="add-first" class="btn btn-primary">Add your first product</a></p></div>
   </div>
@@ -48,11 +52,11 @@
         <div class="form-group"><label>SKU (optional)</label><input type="text" id="prod-sku" class="form-input"></div>
         <div class="form-group"><label>Tags (comma-separated)</label><input type="text" id="prod-tags" class="form-input" placeholder="ceramics, mug, gift"></div>
         <div class="form-group"><label>Main image</label><input type="file" id="prod-image" accept="image/jpeg,image/png,image/webp" multiple><p class="form-hint">JPEG, PNG, or WebP up to 4 MB. Select multiple images for a gallery.</p></div>
-          <div id="images-list" class="upload-gallery" aria-live="polite"></div>
-        <div class="form-group" style="margin-top:0.75rem">
+        <div id="images-list" class="upload-gallery" aria-live="polite"></div>
+        <div class="form-group" style="margin-top: var(--space-3)">
           <label><input type="checkbox" id="prod-publish"> Publish immediately (leave unchecked to save as draft)</label>
         </div>
-        <p id="prod-save-error" role="alert" aria-live="assertive" style="display:none;color:var(--danger);margin:0 0 0.75rem"></p>
+        <p id="prod-save-error" role="alert" aria-live="assertive" style="display:none; color: var(--danger); margin: 0 0 var(--space-3)"></p>
       </form>
     </div>
     <div class="modal-footer">

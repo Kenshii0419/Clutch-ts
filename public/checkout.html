@@ -16,15 +16,15 @@
   renderHeader({ currentPage: 'checkout' });
 </script>
 <div id="setup-banner"></div>
-  <div class="container section">
-  <h2>Checkout</h2>
-  <div id="checkout-require-login" style="display:none; text-align:center; padding: 2rem">
+<div class="container section warm-bg">
+  <h2 class="section-title">Checkout</h2>
+  <div id="checkout-require-login" style="display:none; text-align:center; padding: 3rem">
     <p><a href="login.html?next=checkout.html">Sign in</a> to check out.</p>
   </div>
   <div id="checkout-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
   <div id="checkout-empty" class="empty-state" style="display:none"><h2>Your cart is empty</h2><p><a href="shop.html" class="btn btn-primary">Browse handmade goods</a></p></div>
   <div id="checkout-form-wrap" style="display:none">
-    <div class="grid grid-cols-2" style="gap:1.5rem;align-items:start">
+    <div class="grid grid-cols-2" style="gap: var(--space-6); align-items: start;">
       <div>
         <form id="checkout-form" class="content-box">
           <h3 style="margin-top:0">Shipping details</h3>
@@ -58,7 +58,7 @@
         </form>
       </div>
       <div>
-        <div class="content-box" style="position:sticky;top:80px">
+        <div class="content-box" style="position:sticky; top: 80px;">
           <h3 style="margin-top:0">Order summary</h3>
           <div id="checkout-items"></div>
           <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
@@ -70,7 +70,7 @@
       </div>
     </div>
   </div>
-  <div id="checkout-error" style="color:var(--danger);margin-top:1rem;display:none"></div>
+  <div id="checkout-error" style="color:var(--danger); margin-top: var(--space-4); display:none"></div>
 </div>
 <script type="module" src="/js/pages/checkout.js"></script>
 </body>

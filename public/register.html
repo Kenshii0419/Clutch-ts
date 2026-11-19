@@ -16,14 +16,14 @@
   renderHeader({ currentPage: 'register' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section">
-  <div class="grid grid-cols-2">
+<div class="container section warm-bg">
+  <div class="grid grid-cols-2" style="align-items: start;">
     <div>
-      <h2>Create your account</h2>
+      <h2 class="section-title">Create your account</h2>
       <p>Join YouMadeIt to buy from independent makers, save your favorites, and track your orders.</p>
     </div>
     <div>
-      <form id="register-form" class="warm-bg" style="padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+      <form id="register-form" class="content-box">
         <div class="form-group">
           <label for="reg-name">Display name</label>
           <input type="text" id="reg-name" name="display-name" class="form-input" required placeholder="e.g. Maya Lin">
@@ -41,7 +41,7 @@
           <label><input type="checkbox" name="terms" required> I accept the <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a></label>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Create account</button>
-        <p class="form-hint" style="text-align:center; margin-top: 1rem">Already have an account? <a href="login.html">Sign in</a></p>
+        <p class="form-hint" style="text-align:center; margin-top: var(--space-4)">Already have an account? <a href="login.html">Sign in</a></p>
       </form>
     </div>
   </div>

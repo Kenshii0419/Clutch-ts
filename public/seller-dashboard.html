@@ -16,9 +16,12 @@
   renderHeader({ currentPage: 'seller' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section">
-  <div id="seller-dashboard-header" class="flex-between" style="display:none;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
-    <h2>Seller dashboard</h2>
+<div class="container section warm-bg">
+  <div id="seller-dashboard-header" class="section-header" style="display:none; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-2)">
+    <div>
+      <h2 class="section-title">Seller dashboard</h2>
+      <p class="section-subtitle">Manage your shop, listings, and customer orders from one place.</p>
+    </div>
     <a href="seller-products.html" class="btn btn-primary">Add a product</a>
   </div>
   <div id="seller-require-auth" class="seller-entry" style="display:none">
@@ -29,12 +32,12 @@
       <a href="register.html?next=seller-dashboard.html" class="btn btn-outline">Create an account</a>
     </div>
   </div>
-  <div id="seller-account-pending" class="seller-entry content-box" style="display:none;max-width:none">
+  <div id="seller-account-pending" class="seller-entry content-box" style="display:none; max-width: none">
     <h2>Account review in progress</h2>
     <p id="seller-account-pending-copy">Your account needs approval before you can open a shop or place marketplace orders.</p>
     <a href="profile.html" class="btn btn-outline">View your account</a>
   </div>
-  <div id="seller-onboard" class="content-box" style="display:none; margin-bottom: 1.5rem">
+  <div id="seller-onboard" class="content-box" style="display:none; margin-bottom: var(--space-6)">
     <h3 style="margin-top:0">Open your shop</h3>
     <p>Sell your handmade goods on YouMadeIt. Create your shop to start listing products.</p>
     <form id="onboard-form">
@@ -44,9 +47,9 @@
       <button type="submit" class="btn btn-primary">Create shop</button>
     </form>
   </div>
-  <div id="seller-stats" class="stat-grid" style="margin-bottom:1.5rem"></div>
-  <div class="content-box" id="seller-recent-box" style="display:none;margin-bottom:1.5rem">
-    <div id="seller-order-heading" class="flex-between" style="display:none;margin-bottom:1rem"><h3 style="margin:0">Recent orders</h3><a href="seller-orders.html" class="btn-ghost">View all &rarr;</a></div>
+  <div id="seller-stats" class="stat-grid" style="margin-bottom: var(--space-6)"></div>
+  <div class="content-box" id="seller-recent-box" style="display:none; margin-bottom: var(--space-6)">
+    <div id="seller-order-heading" class="flex-between" style="display:none; margin-bottom: var(--space-3)"><h3 style="margin:0">Recent orders</h3><a href="seller-orders.html" class="btn-ghost">View all &rarr;</a></div>
     <div id="seller-recent-orders" style="display:none"></div>
   </div>
   <div class="content-box" id="seller-products-box" style="display:none">

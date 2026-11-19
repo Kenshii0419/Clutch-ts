@@ -16,16 +16,16 @@
   renderHeader({ currentPage: 'admin' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section">
-  <div id="admin-require-auth" style="display:none; text-align:center; padding: 2rem">
+<div class="container section warm-bg">
+  <div id="admin-require-auth" style="display:none; text-align:center; padding: 3rem">
     <p><a href="login.html?next=admin.html">Sign in</a> to access the administration area.</p>
   </div>
   <div id="admin-wrap" style="display:none">
     <div class="admin-heading">
-      <div><p class="product-cat">MARKETPLACE OPERATIONS</p><h2>Administration</h2></div>
+      <div><p class="product-cat">MARKETPLACE OPERATIONS</p><h2 class="section-title">Administration</h2></div>
       <span class="badge badge-purple">Private workspace</span>
     </div>
-    <div class="stat-grid" style="margin-bottom:1.5rem">
+    <div class="stat-grid" style="margin-bottom: var(--space-6)">
       <div class="metric-card"><div class="label">Products</div><div class="value" id="admin-products">-</div></div>
       <div class="metric-card"><div class="label">Orders</div><div class="value" id="admin-orders">-</div></div>
       <div class="metric-card"><div class="label">Categories</div><div class="value" id="admin-categories">-</div></div>
@@ -54,7 +54,7 @@
         <div id="admin-product-queue" class="admin-queue-list" aria-live="polite"></div>
       </section>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-6)">
       <div class="content-box">
         <h3 style="margin-top:0">Reported content</h3>
         <div id="reports-list"></div>
