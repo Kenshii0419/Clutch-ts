@@ -1,0 +1,7 @@
+LINE 270: .mobile-menu-btn {
+LINE 1170: .admin-product-identity { display: flex; gap: 0.85rem; min-width: 0; }
+LINE 1296: @media (max-width: 640px) {
+LINE 1336: .footer-corner-logo {
+LINE 1337: @media (max-width: 640px) {
+LINE 1338:   .mobile-menu-btn { display: flex; }
+LINE 1340:   .nav-actions { display: none; }

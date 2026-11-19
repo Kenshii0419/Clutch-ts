@@ -1,0 +1,33 @@
+LINE 9:   --brand-purple: #6D712E;
+LINE 12:   --deep-purple: #3D441E;
+LINE 34:   --border: #BFC99B;
+LINE 50:   --text-main: var(--text-primary);
+LINE 127: a { color: var(--brand-purple); text-decoration: none; }
+LINE 201: .nav-list a:hover { color: var(--brand-purple); }
+LINE 204:   color: var(--brand-purple);
+LINE 212: .cart-badge:hover {
+LINE 220:   background: var(--brand-purple);
+LINE 241: .menu-btn:hover { border-color: var(--brand-purple); }
+LINE 266: .dropdown a:hover { background: var(--soft-lilac); color: var(--brand-purple); }
+LINE 301: .mobile-menu a:hover { background: var(--soft-lilac); color: var(--brand-purple); }
+LINE 326:   background: var(--brand-purple);
+LINE 344:   color: var(--brand-purple);
+LINE 345:   border: 2px solid var(--brand-purple);
+LINE 349:   background: var(--brand-purple);
+LINE 361:   color: var(--brand-purple);
+LINE 530:   color: var(--brand-purple);
+LINE 558:   color: var(--brand-purple);
+LINE 578:   background: var(--brand-purple);
+LINE 586:   color: var(--brand-purple);
+LINE 587:   border: 2px solid var(--brand-purple);
+LINE 590: .btn-outline:hover:not(:disabled) { background: var(--brand-purple); color: var(--white); }
+LINE 635:   border-color: var(--brand-purple);
+LINE 640:   background: linear-gradient(135deg, var(--deep-purple) 0%, var(--brand-purple) 55%, var(--deep-purple) 100%);
+LINE 653:   background: radial-gradient(circle, rgba(115, 123, 76, 0.10) 0%, transparent 70%);
+LINE 673:   background: rgba(115, 123, 76, 0.12);
+LINE 675:   border: 1px solid rgba(115, 123, 76, 0.35);
+LINE 843:   background: rgba(115, 123, 76, 0.10);
+LINE 900: .cart-item-title a:hover { color: var(--brand-purple); }
+LINE 1044: input[type="checkbox"] { accent-color: var(--brand-purple); }
+LINE 1094: .image-upload:hover { border-color: var(--brand-purple); }
+LINE 1141:   border-top: 3px solid var(--brand-purple);

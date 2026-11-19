@@ -47,9 +47,23 @@ function linkTag(link) {
   return '<a href="' + link.href + '" class="nav-link' + active + '">' + link.label + '</a>';
 }
 
+function cartLink() {
+  const active = currentPage === 'cart' ? ' active' : '';
+  return '<a href="cart.html" class="nav-link cart-badge' + active + '" aria-label="Shopping cart" style="position:relative;display:flex;align-items:center;gap:0.35rem">' +
+    '<svg class="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+    '<circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle>' +
+    '<path d="M2.5 10h2.6l1.4 6.5a1 1 0 0 0 1 1h11.1a1 1 0 0 0 1-1l1.4-6.5H21a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2.8M3 10h17v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z"></path>' +
+    '</svg>' +
+    '<span class="cart-count">0</span>' +
+    '</a>';
+}
+
 function navLinksHTML(authed, role) {
   let html = '';
-  for (const link of PUBLIC_LINKS) html += linkTag(link);
+  for (const link of PUBLIC_LINKS) {
+    if (link.page === 'cart') { html += cartLink(); continue; }
+    html += linkTag(link);
+  }
   if (authed) {
     for (const link of AUTHD_LINKS) {
       if (!link.roles.includes(role)) continue;
@@ -105,13 +119,6 @@ export function renderHeader({ currentPage: page } = {}) {
     '</a>' +
     '<ul class="nav-list" aria-label="Main navigation"></ul>' +
     '<div class="nav-actions">' +
-    '<a href="cart.html" class="cart-badge" aria-label="Shopping cart" style="position:relative;display:flex;align-items:center">' +
-    '<svg class="cart-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-    '<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>' +
-    '<path d="M3 9l9-3 9 3v4.2l-5-2.1-5 2.1V9z"></path>' +
-    '</svg>' +
-    '<span class="cart-count">0</span>' +
-    '</a>' +
     '<div class="auth-menu" id="auth-menu">' +
     '<button class="menu-btn" id="account-menu-btn" aria-haspopup="true" aria-expanded="false">Account</button>' +
     '<div class="dropdown" id="account-dropdown"></div>' +
