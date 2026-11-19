@@ -1,0 +1,26 @@
+# Environment variables and secrets
+.env
+.env.*
+*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+server.err
+server.run.log
+server-test.log
+npm-debug.log*
+yarn-debug.log*
+
+# Temporary scratch and verify files
+tmp*.txt
+verify*.txt
+docker*.txt
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

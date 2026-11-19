@@ -217,4 +217,20 @@ describe('Express server API, security & Supabase integration', () => {
       assert.equal(badAuth.status, 401, `${method} ${endpoint} with invalid token must return 401`);
     }
   });
+
+  it('blocks HTTP access to sensitive server root files (.env, package.json, server.js, schema.sql)', async () => {
+    const sensitiveFiles = ['/.env', '/package.json', '/server.js', '/schema.sql', '/.git/config'];
+    for (const file of sensitiveFiles) {
+      const res = await fetch(`${baseUrl}${file}`);
+      assert.equal(res.status, 404, `Sensitive file ${file} must not be exposed over HTTP (returned ${res.status})`);
+    }
+  });
+
+  it('verifies strict security headers on all API responses', async () => {
+    const res = await fetch(`${baseUrl}/api/categories`);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(res.headers.get('x-frame-options'), 'DENY');
+    assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+  });
 });
