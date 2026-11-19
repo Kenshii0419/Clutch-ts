@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About — YouMadeIt</title>
+  <title>About Us — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,25 +13,34 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'about' });
+  renderHeader({ currentPage: 'about', autoAuth: true });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">About YouMadeIt</h2>
-  <p>YouMadeIt is a marketplace built for independent artists and makers. We believe the best things are made by hand — by people who care about their craft and the people who buy it.</p>
-  <p>Our marketplace exists to help makers reach buyers directly: no middlemen, no drop-shipping, no guesswork. Every product you see here is made by a real person who chose this shop to share their work with the world.</p>
-  <p>Whether you are here to find a one-of-a-kind gift or to start your own creative business, we are glad you are here.</p>
-  <div class="grid grid-cols-2" style="gap: var(--space-6);">
-    <div style="background: var(--color-ivory); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5)">
-      <h3 style="margin-top:0">Our promise</h3>
-      <p>We review new listings, protect buyers, and keep the platform safe so you can shop with confidence.</p>
-    </div>
-    <div style="background: var(--color-ivory); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5)">
-      <h3 style="margin-top:0">Our standards</h3>
-      <p>We expect every maker to sell honestly, respond to questions, and treat customers with respect.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="page-sheet paper-dotted" style="max-width: 900px; margin: 0 auto;">
+      <span class="badge badge-purple" style="margin-bottom:0.75rem">Our Story</span>
+      <h1 class="section-title">Made by local hands. Shared with the community.</h1>
+      <p>YouMadeIt is a cozy online marketplace celebrating independent artists, crafters, illustrators, weavers, potters, and small handmade businesses across Iloilo, Philippines.</p>
+      <p>Inspired by community art fairs and neighborhood craft markets, we built YouMadeIt so local makers have an inviting place to showcase their stories, connect directly with thoughtful shoppers, and grow creative livelihoods without feeling lost inside massive corporate catalogs.</p>
+      <div class="grid grid-cols-2" style="gap: 1.25rem; margin-top: 1.5rem;">
+        <div class="sticky-note">
+          <h3 style="margin-top:0">Community Trust</h3>
+          <p style="margin:0">New accounts and listings go through marketplace review so buyers and makers alike enjoy a welcoming, honest space.</p>
+        </div>
+        <div class="sticky-note">
+          <h3 style="margin-top:0">Rooted in Iloilo</h3>
+          <p style="margin:0">Every purchase supports local creativity—from ceramic mugs thrown in small studios to handwoven goods and pressed floral stationery.</p>
+        </div>
+      </div>
+      <div class="flex" style="margin-top: 1.75rem;">
+        <a href="shop.html" class="btn btn-primary">Explore the Shop</a>
+        <a href="seller-dashboard.html" class="btn btn-outline">Open a Maker Shop</a>
+      </div>
     </div>
   </div>
-  <p class="form-hint" style="margin-top: var(--space-6)">This is a placeholder about page. Maker stories are stories we add as sellers join the marketplace.</p>
-</div>
+</main>
+
 </body>
 </html>

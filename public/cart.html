@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shopping cart — YouMadeIt</title>
+  <title>Shopping Cart — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,43 +16,71 @@
   renderHeader({ currentPage: 'cart' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Your cart</h2>
-  <div id="cart-require-login" style="display:none; text-align:center; padding: 3rem">
-    <p>Your cart is tied to your account. <a href="login.html?next=cart.html">Sign in</a> to see your saved cart.</p>
-  </div>
-  <div id="cart-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div id="cart-empty" class="empty-state" style="display:none"><h2>Your cart is empty</h2><p><a href="shop.html" class="btn btn-primary">Browse handmade goods</a></p></div>
-  <div id="cart-wrap" style="display:grid; grid-template-columns: 1fr 380px; gap: var(--space-8); align-items: start;">
-    <div class="content-box" id="cart-content-box" style="display:none">
-      <div class="list-toolbar">
-        <div class="list-toolbar-left"><span class="text-secondary" style="font-size:0.875rem">Items in your cart</span></div>
-        <div class="list-toolbar-right">
-          <div class="sort-control">
-            <label for="cart-sort">Sort</label>
-            <select id="cart-sort" class="form-select">
-              <option value="added-desc">Date added: newest</option>
-              <option value="added-asc">Date added: oldest</option>
-              <option value="alpha-asc">Alphabetical: A–Z</option>
-              <option value="alpha-desc">Alphabetical: Z–A</option>
-              <option value="price-asc">Price: low to high</option>
-              <option value="price-desc">Price: high to low</option>
-              <option value="qty-desc">Quantity: high to low</option>
-            </select>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="section-header" style="margin-bottom: var(--space-4);">
+      <div>
+        <h1 class="section-title">Your Cart</h1>
+        <p class="section-subtitle">Review your handmade picks before proceeding to sandbox checkout.</p>
+      </div>
+      <a href="shop.html" class="btn btn-ghost btn-sm">&larr; Continue shopping</a>
+    </div>
+
+    <div id="cart-require-login" class="content-box empty-state" style="display:none">
+      <h3>Sign in to view your cart</h3>
+      <p>Your cart stays saved to your YouMadeIt account.</p>
+      <a href="login.html?next=cart.html" class="btn btn-primary">Sign in</a>
+    </div>
+
+    <div id="cart-pending-notice" class="sticky-note" style="display:none; margin-bottom: var(--space-4);"></div>
+    <div id="cart-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+
+    <div id="cart-empty" class="content-box empty-state" style="display:none">
+      <h3>Your cart is empty</h3>
+      <p>Discover small-batch crafts from local Iloilo creators.</p>
+      <a href="shop.html" class="btn btn-primary">Browse Handmade Goods</a>
+    </div>
+
+    <div id="cart-wrap" class="cart-layout" style="display:none">
+      <div class="content-box" id="cart-content-box">
+        <div class="list-toolbar">
+          <div class="list-toolbar-left">
+            <span id="cart-count-label" class="text-secondary" style="font-size:0.9rem; font-weight:700">Items in your cart</span>
+          </div>
+          <div class="list-toolbar-right">
+            <div class="sort-control">
+              <label for="cart-sort">Sort</label>
+              <select id="cart-sort" class="form-select">
+                <option value="added-desc">Recently added</option>
+                <option value="added-asc">Oldest added</option>
+                <option value="alpha-asc">Name: A–Z</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </div>
           </div>
         </div>
+        <div id="cart-items-wrap"></div>
       </div>
-      <div id="cart-items-wrap"></div>
-    </div>
-    <div id="cart-summary" class="content-box" style="position:sticky; top: 80px; display:none">
-      <div class="flex-between" style="margin-bottom:0.5rem"><span id="cart-subtotal"></span></div>
-      <div class="flex-between" style="margin-bottom:0.5rem"><span style="color:var(--text-secondary)">Shipping</span><span style="color:var(--text-secondary)">Free</span></div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:0.75rem 0">
-      <div class="flex-between" style="margin-bottom:1rem"><span id="cart-total"></span></div>
-      <a href="checkout.html" class="btn btn-primary btn-block">Proceed to checkout</a>
+
+      <aside id="cart-summary" class="content-box" style="position:sticky; top: 112px;">
+        <h3 style="margin-top:0">Order Summary</h3>
+        <div class="flex-between" style="margin-bottom:0.5rem"><span id="cart-subtotal"></span></div>
+        <div class="flex-between" style="margin-bottom:0.75rem">
+          <span class="text-secondary">Delivery estimate</span>
+          <span class="text-secondary">Free (Sandbox)</span>
+        </div>
+        <hr style="border:none;border-top:2px dashed var(--border);margin:0.75rem 0">
+        <div class="flex-between" style="margin-bottom:1rem"><span id="cart-total"></span></div>
+        <p id="cart-stock-warning" class="form-error" style="display:none; margin-bottom:0.75rem"></p>
+        <a href="checkout.html" id="proceed-checkout-btn" class="btn btn-primary btn-block">Proceed to Checkout</a>
+        <p class="form-hint" style="margin-bottom:0">Test-mode checkout only. No real payment is charged.</p>
+      </aside>
     </div>
   </div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/cart.js"></script>
 </body>
 </html>

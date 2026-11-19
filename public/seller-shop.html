@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop — YouMadeIt</title>
+  <title>Maker Storefront — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,31 +16,81 @@
   renderHeader({ currentPage: 'shop' });
 </script>
 <div id="setup-banner"></div>
+
+<main class="page-main">
   <div class="container section">
-  <div id="shop-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div id="shop-content" style="display:none">
-    <div class="content-box" style="margin-bottom:1.5rem">
-      <div id="shop-banner" style="margin-bottom:1rem"></div>
-      <h1 style="margin:0"><span id="shop-name"></span></h1>
-      <p id="shop-seller" class="product-seller" style="margin:0.5rem 0 0"></p>
-      <div id="shop-banner-img" style="margin:1rem 0"></div>
-      <p id="shop-desc" style="font-size:1.05rem;max-width:800px;margin-bottom:0"></p>
+    <div id="shop-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+
+    <div id="shop-content" style="display:none">
+      <div class="content-box paper-dotted" style="margin-bottom: var(--space-6);">
+        <div id="shop-banner-img" style="display:none; margin-bottom:1.1rem"></div>
+        <div class="flex" style="align-items:flex-start; gap:1.25rem;">
+          <img id="shop-logo" src="/images/YouMadeIt_-removebg-preview.png" alt="" class="shop-avatar" style="width:76px;height:76px;">
+          <div style="flex:1; min-width: 240px;">
+            <div class="flex" style="gap:0.5rem; margin-bottom:0.35rem;">
+              <span class="badge badge-purple">Local Maker Shop</span>
+              <span id="shop-location" class="shop-location-pill" style="display:none"></span>
+              <span id="shop-rating" class="text-secondary" style="font-size:0.88rem"></span>
+            </div>
+            <h1 id="shop-name" style="margin:0 0 0.25rem; font-size: clamp(1.75rem, 3.2vw, 2.5rem);"></h1>
+            <p id="shop-seller" class="text-secondary" style="margin:0 0 0.75rem; font-weight:700;"></p>
+            <p id="shop-desc" style="max-width: 72ch; margin-bottom: 0.75rem;"></p>
+            <div class="flex">
+              <button type="button" id="shop-message-btn" class="btn btn-primary btn-sm">Message the Maker</button>
+              <button type="button" id="share-link" class="btn btn-outline btn-sm">Copy Shop Link</button>
+            </div>
+          </div>
+        </div>
+        <div id="shop-inquiry-panel" class="sticky-note" style="display:none; margin-top: 1.25rem;">
+          <h4 style="margin-top:0">Send a message to this shop</h4>
+          <div class="form-group">
+            <label for="shop-inq-subject">Subject</label>
+            <input type="text" id="shop-inq-subject" class="form-input" placeholder="Custom order, meetup, or product question">
+          </div>
+          <div class="form-group">
+            <label for="shop-inq-message">Message</label>
+            <textarea id="shop-inq-message" class="form-textarea" style="min-height:90px"></textarea>
+          </div>
+          <div class="flex">
+            <button type="button" id="shop-inq-send" class="btn btn-primary btn-sm">Send Message</button>
+            <button type="button" id="shop-inq-cancel" class="btn btn-ghost btn-sm">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3" style="margin-bottom: var(--space-6); gap: 1rem;">
+        <div class="sticky-note">
+          <h4 style="margin-top:0">Processing Time</h4>
+          <p id="shop-processing-text" style="margin:0; font-size:0.92rem;">—</p>
+        </div>
+        <div class="sticky-note">
+          <h4 style="margin-top:0">Shipping &amp; Delivery</h4>
+          <p id="shop-shipping-text" style="margin:0; font-size:0.92rem;">—</p>
+        </div>
+        <div class="sticky-note">
+          <h4 style="margin-top:0">Return Policy</h4>
+          <p id="shop-return-text" style="margin:0; font-size:0.92rem;">—</p>
+        </div>
+      </div>
+
+      <div class="page-sheet">
+        <div class="flex-between" style="margin-bottom:1rem">
+          <h2 style="margin:0">Shop Creations</h2>
+          <span id="shop-product-count" class="text-secondary" style="font-size:0.9rem"></span>
+        </div>
+        <div id="shop-category-pills" class="category-pills"></div>
+        <div id="shop-products" class="products-grid"></div>
+      </div>
     </div>
-    <div class="content-box" style="margin-bottom:1.5rem;max-width:720px">
-      <h3 style="margin-top:0">Shop policies</h3>
-      <p id="shop-processing" style="margin-bottom:0.75rem"><strong>Processing time:</strong> <span id="shop-processing-text">—</span></p>
-      <p id="shop-shipping" style="margin-bottom:0.75rem"><strong>Shipping:</strong> <span id="shop-shipping-text">—</span></p>
-      <p id="shop-return" style="margin-bottom:0.75rem"><strong>Returns:</strong> <span id="shop-return-text">—</span></p>
-      <p id="shop-contact" style="margin-bottom:1rem"><strong>Contact:</strong> <a id="shop-contact-link" href="mailto:">Contact the maker</a></p>
-      <p id="shop-permalink" style="font-size:0.85rem;color:var(--text-secondary);margin:0">Share this shop: <a id="share-link" href="#" onclick="navigator.clipboard.writeText(window.location.href);showToast('Link copied!'); return false;">Copy link</a></p>
-    </div>
-    <div class="content-box">
-      <h2 style="margin-top:0">Products</h2>
-      <div id="shop-products" class="grid grid-cols-4"></div>
+
+    <div id="shop-not-found" class="empty-state content-box" style="display:none">
+      <h2>Shop not found</h2>
+      <p>This maker storefront does not exist or is currently inactive.</p>
+      <a href="shop.html" class="btn btn-primary">Browse All Creations</a>
     </div>
   </div>
-  <div id="shop-not-found" class="empty-state" style="display:none"><h2>Shop not found</h2><p>This shop has gone silent.</p></div>
-  </div>
+</main>
+
 <script type="module" src="/js/pages/seller-shop.js"></script>
 </body>
 </html>

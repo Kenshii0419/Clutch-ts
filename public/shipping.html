@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shipping — YouMadeIt</title>
+  <title>Shipping Information — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,23 +13,26 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'shipping' });
+  renderHeader({ currentPage: 'shipping', autoAuth: true });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Shipping information</h2>
-  <div class="content-box legal-box">
-    <h3>Shipping by marketplace policy</h3>
-    <p>Shipping is managed by each seller. Processing times and shipping methods are displayed on each product listing.</p>
-    <h3>What buyers should know</h3>
-    <ul>
-      <li>Processing times begin when your order is confirmed.</li>
-      <li>Shipping methods vary by seller and location.</li>
-      <li>International orders take longer to process.</li>
-    </ul>
-    <h3>Contact us</h3>
-    <p>For shipping questions, please contact the seller through your order details or use the support form.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="content-box legal-box" style="max-width: 820px; margin: 0 auto;">
+      <h1 class="section-title">Shipping &amp; Local Delivery</h1>
+      <h3>How makers fulfil orders</h3>
+      <p>Each artist packs and dispatches orders from their own studio. Processing times and delivery notes appear on each product page and shop storefront.</p>
+      <h3>Iloilo &amp; Philippine deliveries</h3>
+      <ul>
+        <li>Local Iloilo City &amp; nearby municipality orders can be sent via local courier or coordinated for meetup when supported by the maker.</li>
+        <li>Nationwide orders across the Philippines ship via standard local couriers with tracking numbers recorded in <a href="orders.html">My Orders</a>.</li>
+      </ul>
+      <h3>Questions?</h3>
+      <p>Message the maker from any product page or contact our team on <a href="contact.html">Contact Support</a>.</p>
+    </div>
   </div>
-</div>
+</main>
+
 </body>
 </html>

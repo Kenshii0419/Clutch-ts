@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Returns &amp; refunds — YouMadeIt</title>
+  <title>Returns &amp; Refunds — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,25 +13,26 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'returns' });
+  renderHeader({ currentPage: 'returns', autoAuth: true });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Returns and refunds</h2>
-  <div class="content-box legal-box">
-    <h3>Our return policy</h3>
-    <p>Each seller sets their own return policy on their shop page. Buyers can request returns or refunds through their order details when the policy permits.</p>
-    <h3>When refunds are handled</h3>
-    <ul>
-      <li>If a seller cannot fulfil an order.</li>
-      <li>If an order is cancelled before postage is applied.</li>
-      <li>If the marketplace resolves a dispute over a listing.</li>
-    </ul>
-    <h3>Restocking policy</h3>
-    <p>Return shipping and restocking fees, if any, are set by individual sellers and shown at request time.</p>
-    <h3>Cancelled vs refunded</h3>
-    <p>A cancelled order restores the payment to you (according to the seller's policy) and stock is restored for available items. A refunded order has the payment reversed by the provider.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="content-box legal-box" style="max-width: 820px; margin: 0 auto;">
+      <h1 class="section-title">Returns &amp; Refunds</h1>
+      <h3>Maker shop policies</h3>
+      <p>Each independent maker publishes their own return policy directly on their shop storefront. Always check custom/personalized item rules before ordering.</p>
+      <h3>When orders can be cancelled</h3>
+      <ul>
+        <li>Buyers can cancel an order from <a href="orders.html">My Orders</a> while its status is <em>pending payment</em> or <em>paid</em> (before shipping).</li>
+        <li>Cancelling restores item inventory back to the maker’s listing automatically.</li>
+      </ul>
+      <h3>Damaged or incorrect items</h3>
+      <p>If a handmade piece arrives damaged in transit, message the maker directly or reach out through <a href="contact.html">Contact Support</a> with your order number.</p>
+    </div>
   </div>
-</div>
+</main>
+
 </body>
 </html>

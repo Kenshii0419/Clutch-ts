@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seller guidelines — YouMadeIt</title>
+  <title>Seller Guidelines — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,33 +13,38 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'seller' });
+  renderHeader({ currentPage: 'seller', autoAuth: true });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Seller guidelines</h2>
-  <div class="content-box legal-box">
-    <p>These guidelines apply to every seller on YouMadeIt They are the foundation of a fair marketplace.</p>
-    <h3>Listing rules</h3>
-    <ul>
-      <li>Describe materials, dimensions, processing time, and any personalization clearly.</li>
-      <li>Picture your products well — no misleading or deceptive images.</li>
-      <li>Set a reasonable price for the quality and uniqueness of your work.</li>
-    </ul>
-    <h3>Order fulfilment</h3>
-    <ul>
-      <li>Mark orders as shipped only when they have left your hands.</li>
-      <li>Keep your stock accurate — overselling can be unsettling for buyers.</li>
-      <li>Respond to buyer questions promptly.</li>
-    </ul>
-    <h3>Community standards</h3>
-    <ul>
-      <li>No counterfeit, unsafe, or misrepresented items.</li>
-      <li>No contact with buyers outside the marketplace.</li>
-      <li>Respect each other and our shared community space.</li>
-    </ul>
-    <p>Full policy details, including the terms and privacy policy, apply to your account.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="content-box legal-box" style="max-width: 820px; margin: 0 auto;">
+      <h1 class="section-title">Seller Guidelines</h1>
+      <p>These guidelines keep YouMadeIt warm, authentic, and reliable for every Iloilo maker and shopper.</p>
+      <h3>1. Handmade &amp; original creations</h3>
+      <ul>
+        <li>List items crafted, illustrated, designed, or assembled by you or your small local studio—no mass-produced reselling or dropshipping.</li>
+        <li>Describe materials, dimensions, processing times, and personalization options clearly.</li>
+        <li>Price listings accurately in Philippine pesos (₱) and upload clear, true-to-life photos (JPEG, PNG, or WebP up to 4 MB).</li>
+      </ul>
+      <h3>2. Moderation &amp; review</h3>
+      <ul>
+        <li>New listings and major listing edits go through administrator review before appearing publicly in search and storefront grids.</li>
+      </ul>
+      <h3>3. Fulfilment &amp; communication</h3>
+      <ul>
+        <li>Keep stock counts accurate to avoid overselling.</li>
+        <li>Mark orders as processing or shipped promptly and include tracking numbers when dispatched.</li>
+        <li>Respond kindly to buyer inquiries sent through your Seller Studio.</li>
+      </ul>
+      <div class="flex" style="margin-top: 1.5rem;">
+        <a href="seller-dashboard.html" class="btn btn-primary">Open Seller Studio</a>
+        <a href="about.html" class="btn btn-outline">About YouMadeIt</a>
+      </div>
+    </div>
   </div>
-</div>
+</main>
+
 </body>
 </html>

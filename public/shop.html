@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop — YouMadeIt</title>
+  <title>Shop Handmade Goods — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,51 +16,62 @@
   renderHeader({ currentPage: 'shop' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div class="section-header" style="margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
-    <div>
-      <h2 class="section-title">Discover handmade goods</h2>
-      <p class="section-subtitle">Browse unique creations from independent makers across every category.</p>
-    </div>
-    <div class="nav-actions" style="margin-left: auto;">
-      <a href="seller-dashboard.html" class="btn btn-outline btn-sm">Start selling &rarr;</a>
-    </div>
-  </div>
 
-  <div class="list-toolbar" style="margin-bottom: var(--space-6);">
-    <div class="list-toolbar-left">
-      <form id="search-form" class="flex" style="margin:0; flex:1; min-width: 280px;">
-        <input type="search" id="search-q" name="q" class="form-input" placeholder="Search products, makers, materials…" style="min-width:min(320px,70vw)">
-        <button type="submit" class="btn btn-primary">Search</button>
-        <a href="shop.html" class="btn btn-ghost">Clear</a>
-      </form>
-    </div>
-    <div class="list-toolbar-right">
-      <button id="toggle-filters" type="button" class="btn btn-outline btn-sm">Filters</button>
-      <div class="sort-control">
-        <label for="shop-sort">Sort</label>
-        <select id="shop-sort" class="form-select">
-          <option value="newest">Date added: newest</option>
-          <option value="oldest">Date added: oldest</option>
-          <option value="alpha-asc">Alphabetical: A–Z</option>
-          <option value="alpha-desc">Alphabetical: Z–A</option>
-          <option value="price-asc">Price: low to high</option>
-          <option value="price-desc">Price: high to low</option>
-        </select>
+<main class="page-main">
+  <div class="container section">
+    <div class="page-sheet">
+      <div class="section-header" style="margin-bottom: var(--space-4);">
+        <div>
+          <h1 class="section-title" style="margin-bottom:0.2rem">Discover Handmade Goods</h1>
+          <p class="section-subtitle">Browse creations from local Iloilo artists and independent craft studios.</p>
+        </div>
+        <a href="seller-dashboard.html" class="btn btn-outline btn-sm">Start selling &rarr;</a>
       </div>
+
+      <div id="category-pills" class="category-pills" aria-label="Filter by category"></div>
+
+      <div class="list-toolbar">
+        <div class="list-toolbar-left" style="flex:1; min-width: 240px;">
+          <form id="search-form" class="flex" style="margin:0; flex:1;">
+            <input type="search" id="search-q" name="q" class="form-input" placeholder="Search products, makers, materials…" style="max-width: 340px;">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <button type="button" id="clear-search" class="btn btn-ghost btn-sm">Reset</button>
+          </form>
+        </div>
+        <div class="list-toolbar-right">
+          <button id="toggle-filters" type="button" class="btn btn-outline btn-sm">Filters</button>
+          <div class="sort-control">
+            <label for="shop-sort">Sort</label>
+            <select id="shop-sort" class="form-select">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="popular">Most Popular</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="alpha-asc">Alphabetical: A–Z</option>
+              <option value="alpha-desc">Alphabetical: Z–A</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <aside id="filters-panel" class="sticky-note" style="display:none; margin-bottom: var(--space-4);">
+        <h3 style="margin-top:0">Filter Listings</h3>
+        <div id="filters-content" class="grid grid-cols-3" style="gap:1rem;"></div>
+        <div class="flex" style="margin-top: 0.75rem;">
+          <button id="apply-filters" type="button" class="btn btn-primary btn-sm">Apply filters</button>
+          <button id="reset-filters" type="button" class="btn btn-ghost btn-sm">Reset all</button>
+        </div>
+      </aside>
+
+      <div id="active-filters" class="flex" style="margin-bottom: var(--space-4); display:none;"></div>
+      <div id="shop-results-meta" class="text-secondary" style="font-size:0.88rem; margin-bottom: 1rem;"></div>
+      <div id="shop-grid" class="products-grid"></div>
+      <div id="shop-pagination" class="flex-between" style="margin-top: var(--space-6);"></div>
     </div>
   </div>
+</main>
 
-  <aside id="filters-panel" class="content-box" style="display:none; margin-bottom: var(--space-6);">
-    <h3 style="margin-top:0">Filters</h3>
-    <div id="filters-content"></div>
-    <button id="apply-filters" type="button" class="btn btn-primary btn-block" style="margin-top: var(--space-3)">Apply filters</button>
-    <button id="reset-filters" type="button" class="btn btn-ghost btn-block" style="margin-top: var(--space-2)">Reset</button>
-  </aside>
-  <div id="active-filters" style="margin-bottom: var(--space-4); display:none;"></div>
-  <div id="shop-grid" class="grid grid-cols-4"></div>
-  <div id="shop-pagination" class="flex-between" style="margin-top: var(--space-6);"></div>
-</div>
 <script type="module" src="/js/pages/shop.js"></script>
 </body>
 </html>

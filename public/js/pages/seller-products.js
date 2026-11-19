@@ -1,7 +1,18 @@
-// Seller product management � create, edit, publish/unpublish, delete, images.
-import { supabase } from '/js/init.js';
-import { formatMoney, escapeHtml, showToast, openModal, closeModal } from '/js/ui.js';
-import { renderAuthLinks, updateCartCount } from '/js/nav.js';
+// Seller product management — create, edit, publish/unpublish, delete, and image uploads
+import { supabase, getCurrentProfile, onAuthState } from '/js/init.js';
+import {
+  formatMoney,
+  escapeHtml,
+  escapeAttr,
+  showToast,
+  openModal,
+  closeModal,
+  confirmDialog,
+  apiFetch,
+  checkDbStatus,
+  getMainProductImage
+} from '/js/ui.js';
+import { renderAuthLinks, updateCartCount, refreshCartCount } from '/js/nav.js';
 
 const cfg = window.SUPABASE_CONFIG || {};
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
@@ -21,6 +32,10 @@ const prodPrice = document.getElementById('prod-price');
 const prodQty = document.getElementById('prod-qty');
 const prodSku = document.getElementById('prod-sku');
 const prodCategory = document.getElementById('prod-category');
+const prodMaterials = document.getElementById('prod-materials');
+const prodDimensions = document.getElementById('prod-dimensions');
+const prodProcessing = document.getElementById('prod-processing');
+const prodPersonalization = document.getElementById('prod-personalization');
 const prodTags = document.getElementById('prod-tags');
 const prodPublish = document.getElementById('prod-publish');
 const prodImageInput = document.getElementById('prod-image');
@@ -31,64 +46,7 @@ const saveError = document.getElementById('prod-save-error');
 
 let images = []; // { id, url, storage_path, is_main, sort_order, file, removed }
 let editingId = null;
-
-function showSetup(message) {
-  const b = document.getElementById('setup-banner');
-  b.innerHTML = '<strong>Setup needed:</strong> ' + escapeHtml(message) + ' Run <code>schema.sql</code> in your Supabase SQL Editor to enable the marketplace.';
-  b.style.display = 'block';
-}
-
-async function loadDbStatus() {
-  try {
-    const res = await fetch('/api/db/status');
-    const status = await res.json();
-    const missing = Object.entries(status).filter(([, v]) => !v.exists).map(([k]) => k);
-    if (missing.length) showSetup('Database tables not found: ' + missing.join(', '));
-  } catch (_) {}
-}
-
-function escapeHtmlAttr(text) {
-  return String(text == null ? '' : text).replace(/"/g, '&quot;');
-}
-
-window.addEventListener('authstate', async () => {
-  const { currentUser } = await import('/js/init.js');
-  const prof = currentUser ? await supabase.from('profiles').select('role,display_name').eq('id', currentUser.id).maybeSingle() : null;
-  renderAuthLinks(currentUser, prof && prof.data);
-  if (!currentUser) {
-    requireAuthEl.style.display = 'block';
-    updateCartCount(0);
-    return;
-  }
-  if (!prof || !prof.data || prof.data.role !== 'seller') {
-    if (prof?.data?.role === 'admin') {
-      requireAuthEl.innerHTML = '<h2>Administrator workspace</h2><p>Product moderation and platform controls belong in administration.</p><div class="seller-entry-actions"><a class="btn btn-primary" href="admin.html">Open administration</a></div>';
-    } else if (prof?.data?.approval_status && prof.data.approval_status !== 'approved') {
-      requireAuthEl.innerHTML = '<h2>Account review in progress</h2><p>Your account must be approved before you can open a shop or add listings.</p><div class="seller-entry-actions"><a class="btn btn-outline" href="profile.html">View your account</a></div>';
-    } else {
-      requireAuthEl.innerHTML = '<h2>Open a shop before listing products</h2><p>Create your maker account and shop to add products, inventory, and photos.</p><div class="seller-entry-actions"><a class="btn btn-primary" href="seller-dashboard.html">Start seller setup</a><a class="btn btn-outline" href="register.html?next=seller-dashboard.html">Create an account</a></div>';
-    }
-    requireAuthEl.style.display = 'block';
-    wrap.style.display = 'none';
-    updateCartCount(0);
-    return;
-  }
-  requireAuthEl.style.display = 'none';
-  wrap.style.display = 'block';
-  loadCategories();
-  loadProducts();
-});
-
-async function loadCategories() {
-  let cats = [];
-  const { data, error } = await fetchJson('/api/categories');
-  if (!error && data) cats = data;
-  else {
-    const { data: d } = await supabase.from('categories').select('id, name').order('name');
-    cats = d || [];
-  }
-  prodCategory.innerHTML = cats.map((c) => '<option value="' + escapeHtmlAttr(c.id) + '">' + escapeHtml(c.name) + '</option>').join('');
-}
+let sellerProducts = [];
 
 async function getSessionToken() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -104,19 +62,28 @@ async function getShopId() {
   return (shops && shops[0]) ? shops[0].id : null;
 }
 
+async function loadCategories() {
+  const res = await apiFetch('/api/categories', { auth: false });
+  const cats = res.ok ? (res.data || []) : [];
+  prodCategory.innerHTML = '<option value="">Uncategorized</option>' +
+    cats.map(c => `<option value="${escapeAttr(c.id)}">${escapeHtml(c.name)}</option>`).join('');
+}
+
 async function loadProducts() {
-  const me = (await supabase.auth.getUser()).data.user;
-  if (!me) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
   const { data, error } = await supabase
     .from('products')
     .select('*, categories(name), product_images(*)')
-    .eq('seller_id', me.id)
+    .eq('seller_id', user.id)
     .order('created_at', { ascending: false });
+
   if (error) {
-    tableWrap.innerHTML = '<div class="empty-state"><h2>Unable to load products</h2><p>' + escapeHtml(error.message) + '</p></div>';
+    tableWrap.innerHTML = `<div class="empty-state"><h3>Unable to load products</h3><p>${escapeHtml(error.message)}</p></div>`;
     return;
   }
-  renderProductsTable(data || []);
+  sellerProducts = data || [];
+  renderProductsTable(sellerProducts);
 }
 
 function renderProductsTable(rows) {
@@ -127,236 +94,149 @@ function renderProductsTable(rows) {
     return;
   }
   wrap.style.display = 'block';
-  tableWrap.style.display = '';
+  tableWrap.style.display = 'block';
   emptyEl.style.display = 'none';
-  let html = '<table><thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Review</th><th>Actions</th></tr></thead><tbody>';
-  rows.forEach((p) => {
-    const imgs = p.product_images || [];
-    const main = imgs.find((i) => i.is_main) || imgs[0];
-    const stockClass = (p.quantity || 0) <= 0 ? 'out' : (p.quantity || 0) <= 2 ? 'low' : 'ok';
-    const stockLabel = (p.quantity || 0) <= 0 ? 'Sold out' : (p.quantity || 0) <= 2 ? 'Low stock' : (p.quantity || 0) + ' in stock';
-    const imgUrl = main ? main.url : '/images/placeholder.svg';
-    html += '\
-      <tr>\
-        <td><img src="' + escapeHtml(imgUrl) + '" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border)"></td>\
-        <td style="font-weight:600">' + escapeHtml(p.name) + '</td>\
-        <td>' + escapeHtml(p.category_name || '�') + '</td>\
-        <td>' + formatMoney(p.price_cents, p.currency) + '</td>\
-        <td class="product-stock ' + stockClass + '">' + stockLabel + '</td>\
-        <td><span class="badge ' + (p.status === 'published' ? 'badge-success' : 'badge-draft') + '">' + escapeHtml(p.status) + '</span></td>\
-        <td><span class="badge ' + (p.moderation_status === 'approved' ? 'badge-success' : p.moderation_status === 'rejected' ? 'badge-draft' : 'badge-outline') + '">' + escapeHtml(p.moderation_status || 'approved') + '</span></td>\
-        <td>\
-          <button class="btn-ghost btn-sm" onclick="editProduct(\'' + p.id + '\')" title="Edit details">Edit</button>\
-          <button class="btn-ghost btn-sm" onclick="togglePublish(\'' + p.id + '\', \'' + (p.status === 'published' ? 'draft' : 'published') + '\')" title="' + (p.status === 'published' ? 'Unpublish' : 'Publish') + '">' + (p.status === 'published' ? 'Unpublish' : 'Publish') + '</button>\
-          <button class="btn-ghost btn-sm" onclick="deleteProduct(\'' + p.id + '\', \'' + escapeHtml(p.name) + '\')" style="color:var(--danger)" title="Delete">Delete</button>\
-        </td>\
-      </tr>';
-  });
-  html += '</tbody></table>';
-  tableWrap.innerHTML = html;
+
+  const bodyHtml = rows.map(p => {
+    const imgUrl = getMainProductImage(p);
+    const stock = p.quantity || 0;
+    const stockClass = stock <= 0 ? 'out' : stock <= 2 ? 'low' : 'ok';
+    const stockLabel = stock <= 0 ? 'Sold out' : stock <= 2 ? `Low (${stock})` : `${stock} in stock`;
+    const modBadge = p.moderation_status === 'approved'
+      ? 'badge-success'
+      : (p.moderation_status === 'rejected' ? 'badge-coral' : 'badge-outline');
+
+    return `
+      <tr data-product-id="${escapeAttr(p.id)}">
+        <td><img src="${escapeAttr(imgUrl)}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:var(--radius-sm);border:1.5px solid var(--border)" onerror="this.src='/images/placeholder.svg'"></td>
+        <td>
+          <strong>${escapeHtml(p.name)}</strong>
+          ${p.moderation_note ? `<div class="text-secondary" style="font-size:0.78rem">Note: ${escapeHtml(p.moderation_note)}</div>` : ''}
+        </td>
+        <td>${escapeHtml(p.categories?.name || '—')}</td>
+        <td><strong>${formatMoney(p.price_cents, p.currency)}</strong></td>
+        <td><span class="product-stock ${stockClass}">${stockLabel}</span></td>
+        <td><span class="badge ${p.status === 'published' ? 'badge-success' : 'badge-draft'}">${escapeHtml(p.status)}</span></td>
+        <td><span class="badge ${modBadge}">${escapeHtml(p.moderation_status || 'pending')}</span></td>
+        <td>
+          <div class="flex" style="gap:0.35rem">
+            <button type="button" class="btn btn-ghost btn-sm" data-edit="${escapeAttr(p.id)}">Edit</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-toggle-status="${escapeAttr(p.id)}" data-next-status="${p.status === 'published' ? 'draft' : 'published'}">
+              ${p.status === 'published' ? 'Unpublish' : 'Publish'}
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" data-delete="${escapeAttr(p.id)}" data-name="${escapeAttr(p.name)}" style="color:var(--danger)">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tableWrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Review</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>${bodyHtml}</tbody>
+    </table>
+  `;
 }
 
-async function fetchJson(path, body, method) {
-  const token = await getSessionToken();
-  const res = await fetch(path, {
-    method: method || (body ? 'POST' : 'GET'),
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) return { error: json.error || json.message || 'Request failed (' + res.status + ')' };
-  return { data: json };
-}
-
-function openProductModal(product) {
-  // Ensure button is bound
-  const btn = document.getElementById('prod-save');
-  if (btn) {
-    btn.onclick = function(e){ e.preventDefault(); e.stopPropagation(); saveProduct(); return false; };
+function renderImages() {
+  const visible = images.map((img, idx) => ({ img, idx })).filter(x => !x.img.removed);
+  if (!visible.length) {
+    imagesList.innerHTML = '<p class="form-hint" style="margin:0">No images yet. Add at least one photo (JPEG, PNG, or WebP).</p>';
+    return;
   }
+  imagesList.innerHTML = visible.map(({ img, idx }) => {
+    const isMain = !!img.is_main;
+    return `
+      <div class="upload-thumb" style="border-color:${isMain ? 'var(--color-sage-deep)' : 'var(--border)'}">
+        <img src="${escapeAttr(img.url)}" alt="">
+        <span style="position:absolute;top:4px;left:4px;background:rgba(64,86,58,0.85);color:#fff;font-size:0.68rem;padding:0.1rem 0.4rem;border-radius:999px">
+          ${isMain ? 'Main' : 'Photo'}
+        </span>
+        ${!isMain ? `<button type="button" data-main-img="${idx}" style="position:absolute;bottom:4px;left:4px;right:4px;background:var(--color-paper);color:var(--color-ink);border:1.5px solid var(--border-strong);border-radius:999px;font-size:0.7rem;font-weight:700;padding:0.15rem;cursor:pointer">Set Main</button>` : ''}
+        <button type="button" class="upload-remove" data-remove-img="${idx}" aria-label="Remove image">&times;</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function openProductModal(product = null) {
+  saveError.textContent = '';
+  saveError.style.display = 'none';
   editingId = product ? product.id : null;
-  images = (product && product.product_images ? product.product_images.slice() : []).map((img) => ({
-    id: img.id, url: img.url, storage_path: img.storage_path, is_main: img.is_main, sort_order: img.sort_order, file: null, removed: false
-  }));
-  if (images.length && !images.some((i) => i.is_main)) images[0].is_main = true;
+  images = (product?.product_images || []).slice()
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map(img => ({
+      id: img.id,
+      url: img.url,
+      storage_path: img.storage_path,
+      is_main: !!img.is_main,
+      sort_order: img.sort_order || 0,
+      file: null,
+      removed: false
+    }));
+  if (images.length && !images.some(i => i.is_main)) images[0].is_main = true;
 
   form.reset();
-  prodId.value = '';
   if (product) {
-    modalTitle.textContent = 'Edit product';
+    modalTitle.textContent = 'Edit Product';
     prodId.value = product.id;
     prodName.value = product.name || '';
     prodDesc.value = product.description || '';
-    prodPrice.value = product.price_cents ? (product.price_cents / 100).toFixed(2) : '';
-    prodQty.value = product.quantity || 0;
+    prodPrice.value = product.price_cents != null ? (product.price_cents / 100).toFixed(2) : '';
+    prodQty.value = String(product.quantity ?? 0);
     prodSku.value = product.sku || '';
-    prodTags.value = (product.tags || []).join(', ');
     prodCategory.value = product.category_id || '';
+    prodMaterials.value = product.materials || '';
+    prodDimensions.value = product.dimensions || '';
+    prodProcessing.value = product.processing_time || '';
+    prodPersonalization.value = product.personalization || '';
+    prodTags.value = (product.tags || []).join(', ');
     prodPublish.checked = product.status === 'published';
   } else {
-    modalTitle.textContent = 'Add a product';
-    prodName.value = '';
-    prodDesc.value = '';
-    prodPrice.value = '';
-    prodQty.value = '0';
-    prodSku.value = '';
-    prodTags.value = '';
-    prodCategory.value = '';
-    prodPublish.checked = false;
+    modalTitle.textContent = 'Add a Product';
+    prodId.value = '';
+    prodQty.value = '1';
+    prodPublish.checked = true;
   }
   renderImages();
   openModal(modal);
 }
 
-document.getElementById('btn-add-product').addEventListener('click', (e) => {
-  e.preventDefault();
-  openProductModal();
-});
-document.getElementById('add-first').addEventListener('click', (e) => {
-  e.preventDefault();
-  openProductModal();
-});
-
-btnCancel.addEventListener('click', () => closeModal(modal));
-modal.querySelector('.modal-close').addEventListener('click', () => closeModal(modal));
-modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); });
-window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(modal); });
-
-// Fallback click handler for save button (in case form attribute doesn't work)
-if (btnSave) {
-  btnSave.addEventListener('click', (e) => {
-    e.preventDefault();
-    saveProduct();
-  });
-}
-
-prodImageInput.addEventListener('change', (e) => {
-  const files = Array.from(e.target.files || []);
-  for (const file of files) {
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) { showToast('Use JPEG, PNG, or WebP images.', 'error'); continue; }
-    if (file.size > MAX_FILE_SIZE) { showToast('Image must be under 4 MB.', 'error'); continue; }
-    images.push({ id: null, url: URL.createObjectURL(file), storage_path: null, is_main: false, sort_order: images.length, file, removed: false });
-  }
-  if (images.length && !images.some((i) => i.is_main && !i.removed)) {
-    const first = images.find((i) => !i.removed);
-    if (first) first.is_main = true;
-  }
-  e.target.value = '';
-  renderImages();
-});
-
-function renderImages() {
-  let html = '';
-  images.forEach((img, index) => {
-    const isMain = img.is_main && !img.removed;
-    html += '\
-      <div class="upload-thumb" style="display:inline-block;margin-right:0.75rem;margin-bottom:0.75rem;position:relative">\
-        <img src="' + escapeHtml(img.url) + '" style="width:110px;height:110px;object-fit:cover;border:2px solid ' + (isMain ? 'var(--brand-purple)' : 'var(--border)') + ';border-radius:var(--radius)">\
-        <div style="position:absolute;top:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:4px">' + (isMain ? 'Main' : 'Alternate') + '</div>\
-        <button type="button" onclick="setMainImage(' + index + ')" style="position:absolute;bottom:2px;right:2px;background:var(--brand-purple);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:0.7rem;' + (isMain ? 'display:none' : 'display:block') + '">Main</button>\
-        <button type="button" onclick="removeImage(' + index + ')" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:0.7rem;line-height:1">�</button>\
-        ' + (img.file ? '<div style="font-size:0.7rem;color:var(--text-secondary);text-align:center;margin-top:0.25rem">Ready to upload</div>' : '') + '\
-      </div>';
-  });
-  imagesList.innerHTML = html || '<p class="form-hint">No images yet. Add at least one product image.</p>';
-}
-
-window.setMainImage = (index) => {
-  images.forEach((img) => { img.is_main = false; });
-  images[index].is_main = true;
-  renderImages();
-};
-
-window.removeImage = (index) => {
-  const img = images[index];
-  if (img.id) {
-    img.removed = true;
-    img.url = null;
-  } else {
-    images.splice(index, 1);
-  }
-  const remaining = images.filter((i) => !i.removed);
-  if (remaining.length && !remaining.some((i) => i.is_main)) remaining[0].is_main = true;
-  renderImages();
-};
-
-async function saveProduct() {
-  alert('SAVE CALLED');
-  console.error('SAVE CALLED');
-  if (btnSave.disabled) return;
-  saveError.textContent = '';
-  saveError.style.display = 'none';
-  btnSave.disabled = true;
-  btnSave.textContent = 'Saving...';
-  try {
-    const name = prodName.value.trim();
-    if (!name) throw new Error('Product name is required.');
-    const price = Number(prodPrice.value);
-    if (!Number.isFinite(price) || price < 0) throw new Error('Enter a valid non-negative price.');
-    const quantity = Number(prodQty.value);
-    if (!Number.isInteger(quantity) || quantity < 0) throw new Error('Enter a valid non-negative stock quantity.');
-    const shopId = await getShopId();
-    if (!shopId) throw new Error('No seller shop is linked to this account. Open your shop from Seller dashboard first.');
-
-    const payload = {
-      shop_id: shopId,
-      category_id: prodCategory.value || null,
-      name,
-      description: prodDesc.value.trim(),
-      price,
-      currency: 'USD',
-      status: prodPublish.checked ? 'published' : 'draft',
-      sku: prodSku.value.trim() || null,
-      quantity,
-      tags: prodTags.value.split(',').map((tag) => tag.trim()).filter(Boolean)
-    };
-    let product;
-    if (editingId) {
-      const { data, error } = await fetchJson('/api/products/' + editingId, payload, 'PATCH');
-      if (error) throw new Error(error);
-      product = data;
-    } else {
-      const { data, error } = await fetchJson('/api/products', payload, 'POST');
-      if (error) throw new Error(error);
-      product = data;
-      editingId = product.id;
-      prodId.value = product.id;
-    }
-    await syncImages(product.id);
-    showToast(product.moderation_status === 'pending'
-      ? 'Product saved and sent for admin review.'
-      : 'Product saved.');
-    closeModal(modal);
-    await loadProducts();
-  } catch (err) {
-    saveError.textContent = err.message || 'Product could not be saved.';
-    saveError.style.display = 'block';
-  } finally {
-    btnSave.disabled = false;
-    btnSave.textContent = 'Save product';
-  }
-}
-
 async function syncImages(productId) {
+  const token = await getSessionToken();
+
   // Remove deleted images
-  for (const img of images.filter((i) => i.removed && i.id)) {
-    if (img.storage_path) {
+  for (const img of images.filter(i => i.removed && i.id)) {
+    if (img.storage_path && !img.storage_path.startsWith('demo/')) {
       await fetch(cfg.url + '/storage/v1/object/product-images/' + img.storage_path, {
-        method: 'DELETE', headers: { Authorization: 'Bearer ' + (await getSessionToken()) }
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer ' + token }
       }).catch(() => {});
     }
     const { error } = await supabase.from('product_images').delete().eq('id', img.id);
     if (error) throw new Error('Could not remove image record: ' + error.message);
   }
-  // Upsert images (new ones get inserted, existing keep their id)
+
+  const active = images.filter(i => !i.removed);
   let order = 0;
-  for (const img of images.filter((i) => !i.removed)) {
+  let uploadedCount = 0;
+  const totalUploads = active.filter(i => i.file).length;
+
+  for (const img of active) {
     if (img.file) {
-      const path = 'products/' + productId + '/' + Date.now() + '-' + img.file.name.replace(/\s+/g, '_');
+      uploadedCount++;
+      btnSave.textContent = `Uploading photo ${uploadedCount}/${totalUploads}…`;
+      const safeName = img.file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `products/${productId}/${Date.now()}-${safeName}`;
       const res = await fetch(cfg.url + '/storage/v1/object/product-images/' + path, {
         method: 'PUT',
         headers: {
-          Authorization: 'Bearer ' + (await getSessionToken()),
+          Authorization: 'Bearer ' + token,
           'x-upsert': 'true',
           'Content-Type': img.file.type
         },
@@ -364,124 +244,232 @@ async function syncImages(productId) {
       });
       if (!res.ok) {
         const txt = await res.text().catch(() => '');
-        throw new Error('Image upload failed: ' + txt);
+        throw new Error('Image upload failed: ' + (txt || res.statusText));
       }
       img.storage_path = path;
       img.url = cfg.url + '/storage/v1/object/public/product-images/' + path;
       img.file = null;
     }
-    let result;
-    if (img.id) {
-      result = await supabase.from('product_images').update({
-        product_id: productId,
-        storage_path: img.storage_path,
-        url: img.url,
-        is_main: img.is_main,
-        sort_order: order++
-      }).eq('id', img.id);
-    } else {
-      result = await supabase.from('product_images').insert([{
-        product_id: productId,
-        storage_path: img.storage_path,
-        url: img.url,
-        is_main: img.is_main,
-        sort_order: order++
-      }]);
-    }
+
+    const rowPayload = {
+      product_id: productId,
+      storage_path: img.storage_path,
+      url: img.url,
+      is_main: !!img.is_main,
+      sort_order: order++
+    };
+    const result = img.id
+      ? await supabase.from('product_images').update(rowPayload).eq('id', img.id)
+      : await supabase.from('product_images').insert([rowPayload]);
     if (result.error) throw new Error('Image details could not be saved: ' + result.error.message);
   }
-  const remaining = images.filter((i) => !i.removed);
-  const mains = remaining.filter((i) => i.is_main);
-  if (mains.length > 1) {
-    for (let i = 1; i < mains.length; i++) mains[i].is_main = false;
-    const ids = mains.slice(0, 1).concat(mains.slice(1)).filter((m) => m.id);
-    // keep first main, demote the rest
-    const demote = mains.slice(1).map((m) => m.id).filter(Boolean);
-    if (demote.length) {
-      const { error } = await supabase.from('product_images').update({ is_main: false }).in('id', demote);
-      if (error) throw new Error('Could not update main image: ' + error.message);
-  }
 }
 
-window.saveProduct = saveProduct;
+async function saveProduct() {
+  if (btnSave.disabled) return;
+  saveError.textContent = '';
+  saveError.style.display = 'none';
+  btnSave.disabled = true;
+  btnSave.textContent = 'Saving…';
 
-// Also bind on load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('prod-save');
-    if (btn) {
-      btn.onclick = function(e) { e.preventDefault(); saveProduct(); };
-    }
-  });
-} else {
-  const btn = document.getElementById('prod-save');
-  if (btn) {
-    btn.onclick = function(e) { e.preventDefault(); saveProduct(); };
-  }
-}
-}
+  try {
+    const name = prodName.value.trim();
+    if (!name) throw new Error('Product name is required.');
+    const price = Number(prodPrice.value);
+    if (!Number.isFinite(price) || price < 0) throw new Error('Enter a valid non-negative PHP price.');
+    const quantity = Number(prodQty.value);
+    if (!Number.isInteger(quantity) || quantity < 0) throw new Error('Enter a valid whole number for stock quantity.');
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  console.log('Form submit triggered');
-  saveProduct();
-  return false;
-}, true);
+    const shopId = await getShopId();
+    if (!shopId) throw new Error('No seller shop is linked to this account. Open your shop from Seller Studio first.');
 
-// Global fallback
-document.addEventListener('click', (e) => {
-  const target = e.target;
-  if (target && (target.id === 'prod-save' || target.closest('#prod-save'))) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Global click caught for prod-save');
-    saveProduct();
-    return false;
-  }
-}, true);
-
-window.editProduct = async (id) => {
-  const { data, error } = await supabase.from('products').select('*, product_images(*)').eq('id', id).single();
-  if (error) return alert('Could not load product: ' + error.message);
-  openProductModal(data);
-};
-
-window.togglePublish = async (id, toStatus) => {
-  if (!confirm('Change this product to "' + toStatus + '"?')) return;
-  const { data, error } = await fetchJson('/api/products/' + id, { status: toStatus }, 'PATCH');
-  if (error) return alert('Failed: ' + error);
-  if (toStatus === 'published' && data.moderation_status === 'pending') {
-    showToast('Submitted for review. The listing becomes visible after admin approval.');
-  } else {
-    showToast('Product ' + toStatus + '.');
-  }
-  loadProducts();
-};
-
-window.testSave = () => {
-  console.log('window.testSave called');
-  saveProduct();
-};
-
-// Direct binding after elements exist
-setTimeout(() => {
-  const btn = document.getElementById('prod-save');
-  if (btn) {
-    btn.removeAttribute('onclick');
-    btn.onclick = function(e) { 
-      e.preventDefault(); 
-      e.stopPropagation(); 
-      console.log('Direct bind clicked'); 
-      saveProduct(); 
-      return false;
+    const payload = {
+      shop_id: shopId,
+      category_id: prodCategory.value || null,
+      name,
+      description: prodDesc.value.trim(),
+      price,
+      currency: 'PHP',
+      status: prodPublish.checked ? 'published' : 'draft',
+      sku: prodSku.value.trim() || null,
+      quantity,
+      materials: prodMaterials.value.trim() || null,
+      dimensions: prodDimensions.value.trim() || null,
+      processing_time: prodProcessing.value.trim() || null,
+      personalization: prodPersonalization.value.trim() || null,
+      tags: prodTags.value.split(',').map(t => t.trim()).filter(Boolean)
     };
-    btn.addEventListener('click', function(e) { 
-      e.preventDefault(); 
-      e.stopPropagation(); 
-      console.log('Listener click'); 
-      saveProduct(); 
-      return false;
-    }, true);
+
+    const res = editingId
+      ? await apiFetch('/api/products/' + encodeURIComponent(editingId), { method: 'PATCH', body: payload })
+      : await apiFetch('/api/products', { method: 'POST', body: payload });
+    if (!res.ok) throw new Error(res.error);
+
+    const product = res.data;
+    editingId = product.id;
+    prodId.value = product.id;
+
+    await syncImages(product.id);
+    showToast(product.moderation_status === 'pending'
+      ? 'Product saved and submitted for admin review!'
+      : 'Product saved!');
+    closeModal(modal);
+    await loadProducts();
+  } catch (err) {
+    saveError.textContent = err.message || 'Product could not be saved.';
+    saveError.style.display = 'block';
+  } finally {
+    btnSave.disabled = false;
+    btnSave.textContent = 'Save Product';
   }
-}, 500);
+}
+
+document.getElementById('btn-add-product')?.addEventListener('click', () => openProductModal());
+document.getElementById('add-first')?.addEventListener('click', () => openProductModal());
+btnCancel?.addEventListener('click', () => closeModal(modal));
+document.getElementById('modal-close')?.addEventListener('click', () => closeModal(modal));
+modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); });
+btnSave?.addEventListener('click', saveProduct);
+form?.addEventListener('submit', (e) => { e.preventDefault(); saveProduct(); });
+
+prodImageInput?.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  for (const file of files) {
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      showToast(`${file.name}: please upload JPEG, PNG, or WebP images.`, 'error');
+      continue;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      showToast(`${file.name}: image must be 4 MB or smaller.`, 'error');
+      continue;
+    }
+    images.push({
+      id: null,
+      url: URL.createObjectURL(file),
+      storage_path: null,
+      is_main: false,
+      sort_order: images.length,
+      file,
+      removed: false
+    });
+  }
+  const active = images.filter(i => !i.removed);
+  if (active.length && !active.some(i => i.is_main)) active[0].is_main = true;
+  e.target.value = '';
+  renderImages();
+});
+
+imagesList?.addEventListener('click', (e) => {
+  const mainBtn = e.target.closest('[data-main-img]');
+  if (mainBtn) {
+    const idx = parseInt(mainBtn.dataset.mainImg, 10);
+    images.forEach((img, i) => { img.is_main = i === idx; });
+    renderImages();
+    return;
+  }
+  const remBtn = e.target.closest('[data-remove-img]');
+  if (remBtn) {
+    const idx = parseInt(remBtn.dataset.removeImg, 10);
+    const target = images[idx];
+    if (!target) return;
+    if (target.id) {
+      target.removed = true;
+    } else {
+      images.splice(idx, 1);
+    }
+    const remaining = images.filter(i => !i.removed);
+    if (remaining.length && !remaining.some(i => i.is_main)) remaining[0].is_main = true;
+    renderImages();
+  }
+});
+
+tableWrap?.addEventListener('click', async (e) => {
+  const editBtn = e.target.closest('[data-edit]');
+  if (editBtn) {
+    const id = editBtn.dataset.edit;
+    const found = sellerProducts.find(p => p.id === id);
+    if (found) openProductModal(found);
+    return;
+  }
+
+  const toggleBtn = e.target.closest('[data-toggle-status]');
+  if (toggleBtn) {
+    const id = toggleBtn.dataset.toggleStatus;
+    const nextStatus = toggleBtn.dataset.nextStatus;
+    const ok = await confirmDialog({
+      title: `${nextStatus === 'published' ? 'Publish' : 'Unpublish'} product?`,
+      message: nextStatus === 'published'
+        ? 'Publish this product? Approved listings become visible in the shop immediately.'
+        : 'Move this product back to draft? Shoppers will no longer see it.',
+      confirmText: nextStatus === 'published' ? 'Publish' : 'Move to Draft'
+    });
+    if (!ok) return;
+    const res = await apiFetch('/api/products/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      body: { status: nextStatus }
+    });
+    if (!res.ok) {
+      showToast(res.error, 'error');
+      return;
+    }
+    showToast(nextStatus === 'published' && res.data.moderation_status === 'pending'
+      ? 'Published & waiting for admin moderation approval.'
+      : `Product ${nextStatus}.`);
+    loadProducts();
+    return;
+  }
+
+  const delBtn = e.target.closest('[data-delete]');
+  if (delBtn) {
+    const id = delBtn.dataset.delete;
+    const name = delBtn.dataset.name || 'this product';
+    const ok = await confirmDialog({
+      title: 'Delete product?',
+      message: `Permanently delete "${name}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      danger: true
+    });
+    if (!ok) return;
+    const res = await apiFetch('/api/products/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!res.ok) {
+      showToast(res.error, 'error');
+      return;
+    }
+    showToast('Product deleted.');
+    loadProducts();
+  }
+});
+
+onAuthState(async (e) => {
+  const user = e.detail?.user || null;
+  const profile = user ? await getCurrentProfile() : null;
+  renderAuthLinks(user, profile);
+
+  if (!user) {
+    requireAuthEl.style.display = 'block';
+    wrap.style.display = 'none';
+    updateCartCount(0);
+    return;
+  }
+
+  refreshCartCount();
+  if (!profile || profile.role !== 'seller') {
+    if (profile?.role === 'admin') {
+      requireAuthEl.innerHTML = '<h2>Administrator workspace</h2><p>Product moderation lives in the Admin dashboard.</p><div class="seller-entry-actions"><a class="btn btn-primary" href="admin.html">Open Administration</a></div>';
+    } else if (profile?.approval_status && profile.approval_status !== 'approved') {
+      requireAuthEl.innerHTML = '<h2>Account review in progress</h2><p>Your account must be approved before you can open a shop or add listings.</p><div class="seller-entry-actions"><a class="btn btn-outline" href="profile.html">View Account</a></div>';
+    } else {
+      requireAuthEl.innerHTML = '<h2>Open a shop before listing products</h2><p>Set up your maker storefront first from Seller Studio.</p><div class="seller-entry-actions"><a class="btn btn-primary" href="seller-dashboard.html">Open Seller Studio</a></div>';
+    }
+    requireAuthEl.style.display = 'block';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  requireAuthEl.style.display = 'none';
+  wrap.style.display = 'block';
+  loadCategories();
+  loadProducts();
+});
+
+checkDbStatus();

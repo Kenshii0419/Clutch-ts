@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My orders — YouMadeIt</title>
+  <title>My Orders — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,38 +16,50 @@
   renderHeader({ currentPage: 'orders' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div class="section-header" style="margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-2);">
-    <div>
-      <h2 class="section-title">My orders</h2>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="section-header" style="margin-bottom: var(--space-4);">
+      <div>
+        <h1 class="section-title">My Orders</h1>
+        <p class="section-subtitle">Track purchases, confirm deliveries, and leave verified maker reviews.</p>
+      </div>
+      <a href="shop.html" class="btn btn-ghost btn-sm">&larr; Back to shop</a>
     </div>
-    <a href="shop.html" class="btn-ghost" style="margin-left: auto;">&larr; Back to shop</a>
-  </div>
-  <div id="orders-require-login" style="display:none; text-align:center; padding: 3rem">
-    <p><a href="login.html?next=orders.html">Sign in</a> to see your orders.</p>
-  </div>
-  <div id="orders-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div class="content-box" id="orders-content-box" style="display:none">
-    <div class="list-toolbar">
-      <div class="list-toolbar-left"><span class="text-secondary" style="font-size:0.875rem">Order history</span></div>
-      <div class="list-toolbar-right">
-        <div class="sort-control">
-          <label for="orders-sort">Sort</label>
-          <select id="orders-sort" class="form-select">
-            <option value="date-desc">Date: newest</option>
-            <option value="date-asc">Date: oldest</option>
-            <option value="total-desc">Total: high to low</option>
-            <option value="total-asc">Total: low to high</option>
-            <option value="alpha-asc">Order #: A–Z</option>
-            <option value="alpha-desc">Order #: Z–A</option>
-          </select>
+
+    <div id="orders-require-login" class="content-box empty-state" style="display:none">
+      <h3>Sign in to view your orders</h3>
+      <p>Track shipping updates and order history on your account.</p>
+      <a href="login.html?next=orders.html" class="btn btn-primary">Sign in</a>
+    </div>
+
+    <div id="orders-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+
+    <div class="content-box" id="orders-content-box" style="display:none">
+      <div class="list-toolbar">
+        <div class="list-toolbar-left">
+          <span class="text-secondary" style="font-size:0.9rem; font-weight:700">Order History</span>
+        </div>
+        <div class="list-toolbar-right">
+          <div class="sort-control">
+            <label for="orders-sort">Sort</label>
+            <select id="orders-sort" class="form-select">
+              <option value="date-desc">Date: Newest</option>
+              <option value="date-asc">Date: Oldest</option>
+              <option value="total-desc">Total: High to Low</option>
+              <option value="total-asc">Total: Low to High</option>
+              <option value="alpha-asc">Order #: A–Z</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div id="orders-list"></div>
     </div>
-    <div id="orders-list"></div>
+
+    <div id="orders-detail" class="content-box" style="display:none"></div>
   </div>
-  <div id="orders-detail" class="content-box" style="display:none"></div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/orders.js"></script>
 </body>
 </html>

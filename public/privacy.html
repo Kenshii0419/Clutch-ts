@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy policy — YouMadeIt</title>
+  <title>Privacy Policy — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,24 +13,26 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'privacy' });
+  renderHeader({ currentPage: 'privacy', autoAuth: true });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Privacy policy</h2>
-  <div class="content-box legal-box">
-    <p class="legal-note"><strong>Note:</strong> This page contains <strong>draft privacy terms</strong> for development purposes and has not been reviewed by a lawyer.</p>
-    <h3>Information we collect</h3>
-    <p>We collect account details (email, display name), profile information you choose to share (bio, avatar), order and payment information needed to complete transactions, and support messages.</p>
-    <h3>How we use your information</h3>
-    <p>To operate the marketplace, process orders, communicate with you, and improve our services.</p>
-    <h3>Third parties</h3>
-    <p>Payments and infrastructure are handled by configured providers. Your data is never sold to advertisers.</p>
-    <h3>Your rights</h3>
-    <p>You can request account deletion or download your data through your profile settings or by contacting support.</p>
-    <h3>Cookies</h3>
-    <p>The marketplace uses authentication cookies so you stay signed in between visits.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="content-box legal-box" style="max-width: 820px; margin: 0 auto;">
+      <h1 class="section-title">Privacy Policy</h1>
+      <p class="legal-note"><strong>Note:</strong> These are <strong>draft privacy terms</strong> provided for marketplace development and have not yet undergone formal legal review.</p>
+      <h3>Information we collect</h3>
+      <p>We collect account details (email, display name), profile information you choose to share (bio, avatar), delivery and sandbox order information needed to simulate transactions, and messages sent through our support or maker inquiry forms.</p>
+      <h3>How we use your information</h3>
+      <p>To operate the marketplace, process orders, notify buyers and makers of order updates, and moderate listings safely.</p>
+      <h3>Data protection &amp; access</h3>
+      <p>Authentication and Row Level Security enforce that only authorized account holders, involved order parties, and marketplace administrators can view private order and message records.</p>
+      <h3>Your rights</h3>
+      <p>You can update your profile details in <a href="profile.html">My Profile</a> or request assistance through <a href="contact.html">Contact Support</a>.</p>
+    </div>
   </div>
-</div>
+</main>
+
 </body>
 </html>

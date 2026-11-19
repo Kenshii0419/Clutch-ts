@@ -230,7 +230,7 @@ create table if not exists public.products (
   name text not null,
   description text,
   price_cents integer not null default 0 check (price_cents >= 0),
-  currency text default 'USD' not null,
+  currency text default 'PHP' not null,
   status text check (status in ('draft', 'published')) default 'draft' not null,
   sku text,
   quantity integer not null default 0 check (quantity >= 0),
@@ -318,7 +318,7 @@ create table if not exists public.orders (
   subtotal_cents integer not null default 0,
   shipping_cents integer not null default 0,
   total_cents integer not null default 0,
-  currency text default 'USD' not null,
+  currency text default 'PHP' not null,
   shipping_address jsonb not null default '{}'::jsonb,
   delivery_method text,
   tracking_number text,
@@ -377,7 +377,7 @@ create table if not exists public.payments (
   provider text not null default 'sandbox',
   provider_payment_id text,
   amount_cents integer not null,
-  currency text default 'USD' not null,
+  currency text default 'PHP' not null,
   status text check (status in ('pending', 'paid', 'failed', 'refunded'))
     default 'pending' not null,
   created_at timestamptz default now() not null,
@@ -421,7 +421,7 @@ create table if not exists public.sales_events (
   product_name_snapshot text,
   quantity integer,
   gross_cents integer,
-  currency text default 'USD',
+  currency text default 'PHP',
   created_at timestamptz default now() not null
 );
 
@@ -483,6 +483,8 @@ create index if not exists idx_products_status on public.products(status);
 create index if not exists idx_products_category on public.products(category_id);
 create index if not exists idx_products_seller on public.products(seller_id);
 create index if not exists idx_products_moderation on public.products(moderation_status, created_at desc);
+create index if not exists idx_products_published_feed on public.products(status, moderation_status, created_at desc);
+create index if not exists idx_shops_active on public.shops(is_active, created_at desc);
 create index if not exists idx_profiles_approval on public.profiles(approval_status, created_at desc);
 create index if not exists idx_product_images_product on public.product_images(product_id);
 create index if not exists idx_admin_messages_recipient on public.admin_messages(recipient_id, created_at desc);
@@ -689,6 +691,7 @@ declare
     'App can add payment rows',
     'Sellers respond to reviews of their products',
     'Users read own notifications',
+    'Users update own notifications',
     'Sales events are viewable by everyone',
     'Sellers read own sales events',
     'Admins read all sales events',
@@ -749,10 +752,14 @@ create policy "Authenticated users can create a shop" on public.shops
   for insert with check (auth.uid() = owner_id and public.is_account_approved());
 
 
--- Products: published products viewable by everyone; sellers manage own
+-- Products: published & approved products viewable by everyone; sellers/admins view own/all
 drop policy if exists "Published products are viewable by everyone" on public.products;
 create policy "Published products are viewable by everyone" on public.products
-  for select using (true);
+  for select using (
+    (status = 'published' and moderation_status = 'approved')
+    or auth.uid() = seller_id
+    or public.is_marketplace_admin()
+  );
 create policy "Sellers manage own products" on public.products
   using (auth.uid() = seller_id and public.is_account_approved())
   with check (auth.uid() = seller_id and public.is_account_approved());
@@ -861,9 +868,12 @@ create policy "Sellers respond to reviews of their products" on public.reviews
   );
 
 
--- Notifications: recipients read own; system creates
+-- Notifications: recipients read and mark own as read; system creates
 create policy "Users read own notifications" on public.notifications
   for select using (auth.uid() = user_id);
+create policy "Users update own notifications" on public.notifications
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 -- Sales events: public read (feed-safe, no buyer PII); sellers read own; admins all
 create policy "Sales events are viewable by everyone" on public.sales_events for select using (true);
@@ -967,7 +977,9 @@ insert into public.categories (name, slug, description) values
   ('Candles & Home Fragrance', 'candles-home', 'Hand-poured candles and home fragrance'),
   ('Woodworking', 'woodworking', 'Handcrafted wooden home goods and decor'),
   ('Beauty & Wellness', 'beauty-wellness', 'Handmade soaps, balms, and self-care'),
-  ('Stationery & Paper Goods', 'stationery-paper', 'Cards, journals, and paper creations')
+  ('Stationery & Paper Goods', 'stationery-paper', 'Cards, journals, and paper creations'),
+  ('Handmade Accessories', 'handmade-accessories', 'Bags, pouches, hairpieces, and everyday hand-crafted accents'),
+  ('Other Handmade Creations', 'other-handmade', 'Unique small-batch crafts and local artisan keepsakes')
 on conflict (slug) do nothing;
 
 -- ============================================================================

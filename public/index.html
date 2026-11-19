@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouMadeIt — Handmade goods from independent makers</title>
-  <meta name="description" content="Discover unique handmade goods, arts and crafts from independent artisans. Buy direct from makers.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>YouMadeIt — Iloilo's Local Handmade Marketplace</title>
+  <meta name="description" content="Discover handmade creations from local artists, crafters, and independent makers in Iloilo, Philippines.">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -20,90 +17,118 @@
   renderHeader({ currentPage: 'home' });
 </script>
 <div id="setup-banner"></div>
-<main>
-  <!-- Hero Section — deep forest-teal editorial panel -->
+
+<main class="page-main">
+  <!-- Hero Section -->
   <section class="hero-section">
     <div class="container">
-      <div class="hero-grid">
-        <div class="hero-content" style="max-width: 640px;">
-          <span class="hero-badge">Handmade Marketplace</span>
-          <h1 class="hero-title">Made by Hand.<br><span class="hero-title-accent">Loved by Heart.</span></h1>
-          <p class="hero-description">Discover thoughtfully crafted treasures from independent artisans. Each piece tells a story of creativity, passion, and meticulous craftsmanship.</p>
-          <div class="hero-actions">
-            <a href="shop.html" class="btn btn-primary btn-lg">
-              Explore Collection
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7.5 15L12.5 10L7.5 5"/>
+      <div class="hero-frame">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <span class="hero-badge">Iloilo Handmade Community</span>
+            <h1 class="hero-title">Made by Hand.<br><span class="hero-title-accent">Loved by Heart.</span></h1>
+            <p class="hero-description">Discover handmade creations from local artists and makers in Iloilo. Thoughtfully crafted pottery, woven textiles, botanical candles, art prints, and keepsakes—direct from neighborhood studios.</p>
+            <div class="hero-actions">
+              <a href="shop.html" class="btn btn-primary btn-lg">Explore the Shop &rarr;</a>
+              <a href="seller-dashboard.html" class="btn btn-outline-white btn-lg">Become a Seller</a>
+            </div>
+            <div class="hero-features">
+              <div class="hero-feature">
+                <span class="hero-feature-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2 5 5 1.5-4 3.5 1 5-4-2.5L8 18l1-5-4-3.5L10 8l2-5z"/></svg>
+                </span>
+                <span>Small-Batch Craft</span>
+              </div>
+              <div class="hero-feature">
+                <span class="hero-feature-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>
+                </span>
+                <span>Iloilo Artists</span>
+              </div>
+              <div class="hero-feature">
+                <span class="hero-feature-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <span>Shop Local (₱)</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-sketch-card">
+              <span class="washi-tape" aria-hidden="true"></span>
+              <svg viewBox="0 0 320 260" style="width:100%;height:auto;display:block" role="img" aria-label="Illustrated craft studio desk with handmade pottery mug, woven yarn, paintbrush jar, and botanical leaves">
+                <rect x="14" y="18" width="292" height="224" rx="22" fill="#FFFCF5" stroke="#8EAD68" stroke-width="3"/>
+                <circle cx="62" cy="64" r="24" fill="#F5E9B8" stroke="#8EAD68" stroke-width="2.5"/>
+                <path d="M52 64c4-7 16-7 20 0M56 72c5 4 11 4 14 0" fill="none" stroke="#526F3D" stroke-width="2.2" stroke-linecap="round"/>
+                <!-- Craft shelf line -->
+                <path d="M38 202h244" stroke="#526F3D" stroke-width="3.5" stroke-linecap="round"/>
+                <!-- Handmade ceramic mug -->
+                <path d="M88 134h62v46c0 12-10 22-22 22h-18c-12 0-22-10-22-22v-46z" fill="#D6E6AE" stroke="#526F3D" stroke-width="3"/>
+                <path d="M150 144c14 0 18 10 18 19s-4 19-18 19" fill="none" stroke="#526F3D" stroke-width="3" stroke-linecap="round"/>
+                <path d="M106 164c7 6 19 6 26 0" fill="none" stroke="#DF6551" stroke-width="2.8" stroke-linecap="round"/>
+                <!-- Steam curls -->
+                <path d="M108 118c-4-7 5-12 1-19M128 116c-4-7 5-12 1-19" fill="none" stroke="#8EAD68" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Yarn & heart embroidery -->
+                <circle cx="222" cy="166" r="34" fill="#F5E9B8" stroke="#526F3D" stroke-width="3"/>
+                <path d="M196 154c18-4 34 6 48 18M194 174c20 4 38-6 54-18M208 136c-6 18-2 40 12 58" fill="none" stroke="#DF6551" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Botanical leaf sprig -->
+                <path d="M236 122c6-22 22-34 38-36-2 18-14 34-38 36z" fill="#8EAD68" stroke="#526F3D" stroke-width="2.5"/>
+                <path d="M236 122c-10-16-22-22-34-20 4 14 16 24 34 20z" fill="#D6E6AE" stroke="#526F3D" stroke-width="2.5"/>
+                <!-- Cute sparkle stickers -->
+                <path d="M266 56l4 9 9 4-9 4-4 9-4-9-9-4 9-4 4-9z" fill="#DF6551"/>
+                <circle cx="152" cy="54" r="5" fill="#8EAD68"/>
+                <circle cx="174" cy="72" r="3.5" fill="#DF6551"/>
               </svg>
-            </a>
-            <a href="seller-dashboard.html" class="btn btn-outline-white btn-lg">Become a Seller</a>
-          </div>
-          <div class="hero-features">
-            <div class="hero-feature">
-              <div class="hero-feature-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4L12 3z"/><path d="M19 14l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z"/></svg>
-              </div>
-              <span>Unique Handmade</span>
-            </div>
-            <div class="hero-feature">
-              <div class="hero-feature-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S13 6 13 4a4 4 0 0 0-8 0c0 2 1 3.5 3 5.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg>
-              </div>
-              <span>Independent Makers</span>
-            </div>
-            <div class="hero-feature">
-              <div class="hero-feature-icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-              </div>
-              <span>Made with Love</span>
+              <p class="hero-sketch-caption">“Made by local hands. Shared with the community.”</p>
             </div>
           </div>
-        </div>
-        <div class="hero-visual">
-          <img src="/images/YouMadeIt!.png" alt="YouMadeIt" class="hero-brand-logo">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Featured Products — warm ivory surface, editorial heading -->
-  <section class="section warm-bg">
+  <!-- Featured Creations -->
+  <section class="section">
     <div class="container">
-      <div class="section-header" style="margin-bottom: var(--space-8);">
+      <div class="section-header">
         <div>
-          <h2 class="section-title">Handpicked Creations</h2>
-          <p class="section-subtitle">Curated pieces from our talented artisans</p>
+          <h2 class="section-title">Featured Creations</h2>
+          <p class="section-subtitle">Handpicked pieces ready to ship from independent makers</p>
         </div>
-        <a href="shop.html" class="btn btn-ghost">View All <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12L10 8L6 4"/></svg></a>
-      </div>
-      <div class="list-toolbar" style="margin-bottom: var(--space-6);">
-        <div class="list-toolbar-left"><span class="text-secondary" style="font-size:0.875rem">Featured listings</span></div>
-        <div class="list-toolbar-right">
+        <div class="flex">
           <div class="sort-control">
             <label for="featured-sort">Sort</label>
             <select id="featured-sort" class="form-select">
-              <option value="newest">Date added: newest</option>
-              <option value="oldest">Date added: oldest</option>
-              <option value="alpha-asc">Alphabetical: A–Z</option>
-              <option value="alpha-desc">Alphabetical: Z–A</option>
-              <option value="price-asc">Price: low to high</option>
-              <option value="price-desc">Price: high to low</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="alpha-asc">Name: A–Z</option>
             </select>
           </div>
+          <a href="shop.html" class="btn btn-outline btn-sm">View all &rarr;</a>
         </div>
       </div>
       <div id="featured-grid" class="products-grid"></div>
     </div>
   </section>
 
-  <!-- Categories — forest-teal accent panel -->
-  <section class="section">
+  <!-- Browse by Category -->
+  <section class="section-sm">
     <div class="container">
-      <div class="content-box" style="background: var(--color-forest); color: var(--text-on-dark); border: none;">
-        <div class="section-header centered" style="margin-bottom: var(--space-8);">
+      <div class="categories-panel">
+        <div class="section-header">
           <div>
-            <h2 class="section-title" style="color: var(--text-on-dark);">Shop by Category</h2>
-            <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Find the perfect handmade piece for any occasion</p>
+            <h2 class="section-title">Browse by Category</h2>
+            <p class="section-subtitle">Explore crafts across every studio discipline</p>
+          </div>
+          <div class="sort-control">
+            <label for="category-sort">Order</label>
+            <select id="category-sort" class="form-select">
+              <option value="alpha-asc">A–Z</option>
+              <option value="alpha-desc">Z–A</option>
+              <option value="newest">Newest</option>
+            </select>
           </div>
         </div>
         <div id="category-grid" class="categories-grid"></div>
@@ -111,97 +136,67 @@
     </div>
   </section>
 
-  <!-- Benefits — deep evergreen anchor section -->
-  <section class="benefits-section">
+  <!-- Featured Local Artists & Shops -->
+  <section class="section">
     <div class="container">
-      <div class="benefits-grid">
-        <div class="benefit-card">
-          <div class="benefit-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <h3>Secure Shopping</h3>
-          <p>Shop with confidence on our trusted platform</p>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Featured Local Artists &amp; Shops</h2>
+          <p class="section-subtitle">Meet the independent makers behind every creation</p>
         </div>
-        <div class="benefit-card">
-          <div class="benefit-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <h3>Support Artisans</h3>
-          <p>Every purchase directly supports independent makers</p>
+        <a href="seller-dashboard.html" class="btn btn-outline btn-sm">Open your shop &rarr;</a>
+      </div>
+      <div id="featured-shops-grid" class="shops-grid"></div>
+    </div>
+  </section>
+
+  <!-- Recently Added Products -->
+  <section class="section-sm" id="recent-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Recently Added</h2>
+          <p class="section-subtitle">Fresh off the workbench and newly approved for the marketplace</p>
         </div>
-        <div class="benefit-card">
-          <div class="benefit-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+        <a href="shop.html?sort=newest" class="btn btn-ghost btn-sm">See newest &rarr;</a>
+      </div>
+      <div id="recent-grid" class="products-grid"></div>
+    </div>
+  </section>
+
+  <!-- Community Introduction -->
+  <section class="section">
+    <div class="container">
+      <div class="community-banner paper-dotted">
+        <div>
+          <span class="badge badge-purple" style="margin-bottom:0.75rem">About Our Community</span>
+          <h2 class="section-title">Made by local hands. Shared with the community.</h2>
+          <p style="color:var(--text-secondary)">YouMadeIt connects Iloilo artists, weavers, potters, illustrators, and home-studio creators directly with neighbors and collectors across the Philippines—with transparent moderation, verified purchase reviews, and personal maker storefronts.</p>
+          <div class="flex">
+            <a href="about.html" class="btn btn-primary">Read Our Story</a>
+            <a href="seller-guidelines.html" class="btn btn-outline">Seller Guidelines</a>
           </div>
-          <h3>Unique Quality</h3>
-          <p>One-of-a-kind pieces crafted with care</p>
         </div>
-        <div class="benefit-card">
-          <div class="benefit-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-            </svg>
+        <div class="benefits-grid">
+          <div class="benefit-card">
+            <div class="benefit-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>Curated &amp; Moderated</h3>
+            <p>Accounts and listings are reviewed to keep the community trustworthy.</p>
           </div>
-          <h3>Personal Touch</h3>
-          <p>Many items can be personalized just for you</p>
+          <div class="benefit-card">
+            <div class="benefit-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+            </div>
+            <h3>Direct Maker Support</h3>
+            <p>Every order directly uplifts local creatives and small studios.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 </main>
-
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <img src="/images/YouMadeIt!.png" alt="YouMadeIt" class="brand-logo">
-        </div>
-        <p class="footer-description">A marketplace celebrating handmade crafts and independent artisans. Discover unique treasures made with love.</p>
-      </div>
-      <div class="footer-links">
-        <div class="footer-column">
-          <h4>Marketplace</h4>
-          <ul>
-            <li><a href="shop.html">Shop All</a></li>
-            <li><a href="shop.html">Categories</a></li>
-            <li><a href="seller-dashboard.html">Become a Seller</a></li>
-          </ul>
-        </div>
-        <div class="footer-column">
-          <h4>Customer Care</h4>
-          <ul>
-            <li><a href="cart.html">Shopping Cart</a></li>
-            <li><a href="orders.html">My Orders</a></li>
-            <li><a href="contact.html">Contact Us</a></li>
-          </ul>
-        </div>
-        <div class="footer-column">
-          <h4>About</h4>
-          <ul>
-            <li><a href="about.html">Our Story</a></li>
-            <li><a href="privacy.html">Privacy Policy</a></li>
-            <li><a href="terms.html">Terms of Service</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2024 YouMadeIt. All rights reserved.</p>
-      <img src="/images/YouMadeIt!.png" alt="" class="footer-corner-logo" aria-hidden="true" loading="lazy">
-    </div>
-  </div>
-</footer>
 
 <script type="module" src="/js/pages/home.js"></script>
 </body>

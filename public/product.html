@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product — YouMadeIt</title>
+  <title>Product — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,39 +16,63 @@
   renderHeader({ currentPage: 'shop' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <a href="shop.html" class="btn-ghost" style="margin-bottom: var(--space-4);">&larr; Back to shop</a>
-  <div id="product-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div id="product-content" style="display:none">
-    <div class="content-box" style="margin-bottom: var(--space-6);">
-      <div class="detail-grid">
-        <div style="min-width: 0;">
-          <div id="product-gallery-main" class="detail-gallery-main"></div>
-          <div id="product-gallery-thumbs" class="flex" style="margin-top: var(--space-3); flex-wrap: wrap; gap: 0.5rem;"></div>
-        </div>
-        <div class="detail-info">
-          <div id="product-meta" class="flex" style="gap: var(--space-2); margin-bottom: var(--space-3); flex-wrap: wrap;"></div>
-          <h1 id="product-name" style="margin-bottom: var(--space-2);"></h1>
-          <div class="product-seller" style="margin-bottom: var(--space-4);">by <span id="product-seller-name" style="color: var(--color-sage); font-weight: 500;"></span></div>
-          <div id="product-price" class="product-price" style="font-size: 2rem; margin-bottom: var(--space-4);"></div>
-          <p id="product-description" style="white-space: pre-wrap; line-height: 1.8; margin-bottom: var(--space-6);"></p>
-          <div id="product-attrs" class="content-box" style="margin: 0 0 var(--space-6); padding: var(--space-4); background: var(--color-ivory);"></div>
-          <div id="product-actions" style="margin-top: var(--space-2);"></div>
-          <div id="product-stock" style="margin-top: var(--space-3);"></div>
+
+<main class="page-main">
+  <div class="container section">
+    <a href="shop.html" class="btn btn-ghost btn-sm" style="margin-bottom: var(--space-3);">&larr; Back to shop</a>
+    <div id="product-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+
+    <div id="product-content" style="display:none">
+      <div class="content-box" style="margin-bottom: var(--space-6);">
+        <div class="detail-grid">
+          <div style="min-width: 0;">
+            <div id="product-gallery-main" class="detail-gallery-main"></div>
+            <div id="product-gallery-thumbs" class="flex" style="margin-top: 0.75rem; gap: 0.55rem;"></div>
+          </div>
+          <div class="detail-info">
+            <div id="product-meta" class="flex" style="margin-bottom: 0.65rem;"></div>
+            <h1 id="product-name" style="font-size: clamp(1.7rem, 3vw, 2.35rem); margin-bottom: 0.35rem;"></h1>
+            <div class="product-seller" style="margin-bottom: 0.85rem; font-size:0.95rem;">
+              Crafted by <a id="product-seller-link" href="shop.html" style="font-weight:700;"></a>
+              <span id="product-seller-location" class="text-secondary"></span>
+            </div>
+            <div id="product-price" class="product-price" style="font-size: 1.9rem; margin-bottom: 0.75rem; color: var(--color-sage-deep);"></div>
+            <div id="product-stock" style="margin-bottom: 1rem;"></div>
+            <p id="product-description" style="white-space: pre-wrap; line-height: 1.7; margin-bottom: 1.25rem;"></p>
+
+            <div id="product-actions" style="margin-bottom: 1.25rem;"></div>
+            <div id="product-inquiry-slot"></div>
+
+            <div id="product-attrs" class="sticky-note" style="margin-top: 0.5rem;"></div>
+            <div style="margin-top: 0.85rem; text-align: right;">
+              <button type="button" id="report-listing-btn" class="btn btn-ghost btn-sm" style="font-size:0.82rem;">Report listing</button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div id="reviews" class="content-box" style="margin-bottom: var(--space-6);">
+        <h3 style="margin-top:0">Customer Reviews</h3>
+        <div id="product-reviews"></div>
+      </div>
+
+      <div class="content-box">
+        <div class="flex-between" style="margin-bottom:1rem">
+          <h3 style="margin:0">More from Local Makers</h3>
+          <a href="shop.html" class="btn btn-ghost btn-sm">Browse shop &rarr;</a>
+        </div>
+        <div id="product-related" class="products-grid"></div>
+      </div>
     </div>
-    <div class="content-box" style="margin-bottom: var(--space-6);">
-      <h3 style="margin-top:0">Reviews</h3>
-      <div id="product-reviews"></div>
-    </div>
-    <div class="content-box">
-      <h3 style="margin-top:0">You may also like</h3>
-      <div id="product-related" class="grid grid-cols-4"></div>
+
+    <div id="product-not-found" class="empty-state content-box" style="display:none">
+      <h2>Creation not found</h2>
+      <p>This handmade listing is unavailable or still awaiting approval.</p>
+      <a href="shop.html" class="btn btn-primary">Explore the Shop</a>
     </div>
   </div>
-  <div id="product-not-found" class="empty-state" style="display:none"><h2>Product not found</h2><p>This listing is no longer available.</p></div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/product.js"></script>
 </body>
 </html>

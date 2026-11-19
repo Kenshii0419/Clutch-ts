@@ -1,43 +1,42 @@
 // Authentication pages: sign in, register, password reset.
 // Uses Supabase Auth (email + password). Session handling is managed by init.js.
 
-import { supabase } from '/js/init.js';
-import { showToast, showError, clearErrors } from '/js/ui.js';
+import { supabase, getCurrentProfile, onAuthState } from '/js/init.js';
+import { showToast, showError, clearErrors, checkDbStatus } from '/js/ui.js';
 import { renderAuthLinks, refreshCartCount } from '/js/nav.js';
 
 function safeNextPage() {
   const requested = new URLSearchParams(window.location.search).get('next') || '';
-  return /^[a-z0-9-]+\.html$/i.test(requested) ? requested : null;
+  return /^[a-z0-9-]+\.html(\?[a-z0-9_=&%-]*)?$/i.test(requested) ? requested : null;
 }
 
 function authErrorMessage(error, action) {
-  const message = String(error && error.message || '');
+  const message = String(error?.message || '');
   const normalized = message.toLowerCase();
   if (normalized.includes('email rate limit exceeded') || normalized.includes('rate limit')) {
     return 'Supabase is temporarily limiting emails. Wait before retrying, or configure a custom SMTP provider in Supabase Auth.';
   }
   if (normalized.includes('invalid login credentials')) {
-    return 'The email/password pair was not accepted, or the email is not confirmed. Check the email, try password reset, and confirm signup completed.';
+    return 'Incorrect email or password, or your email has not been confirmed yet.';
   }
   if (normalized.includes('email not confirmed')) {
-    return 'Confirm your email using the link Supabase sent, then sign in.';
+    return 'Please confirm your email using the verification link sent by Supabase before signing in.';
   }
   if (normalized.includes('fetch failed') || normalized.includes('failed to fetch')) {
-    return 'Could not reach Supabase. Check the project URL and connection, then try again.';
+    return 'Could not reach Supabase. Check the project URL and internet connection, then try again.';
   }
   return message || action + ' failed. Please try again.';
 }
 
-window.addEventListener('authstate', async () => {
-  const { currentUser } = await import('/js/init.js');
-  const profile = currentUser
-    ? await supabase.from('profiles').select('role, display_name').eq('id', currentUser.id).maybeSingle()
-    : null;
-  renderAuthLinks(currentUser, profile && profile.data);
+onAuthState(async (e) => {
+  const user = e.detail?.user || null;
+  const profile = user ? await getCurrentProfile() : null;
+  renderAuthLinks(user, profile);
   refreshCartCount();
 });
 
 export async function setupLogin(form, defaultRedirect) {
+  if (!form) return;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors(form);
@@ -48,7 +47,7 @@ export async function setupLogin(form, defaultRedirect) {
     }
     const submit = form.querySelector('button[type="submit"]');
     submit.disabled = true;
-    submit.textContent = 'Signing in�';
+    submit.textContent = 'Signing in…';
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return showError(form, 'login-email', authErrorMessage(error, 'Sign in'));
@@ -58,13 +57,19 @@ export async function setupLogin(form, defaultRedirect) {
       submit.disabled = false;
       submit.textContent = 'Sign in';
     }
+    const profile = await getCurrentProfile(true);
     const next = safeNextPage() || defaultRedirect || 'index.html';
-    showToast('Welcome back!');
+    if (profile && profile.role !== 'admin' && profile.approval_status !== 'approved') {
+      showToast('Signed in! Note: your account is currently ' + profile.approval_status + ' awaiting admin review.', 'info');
+    } else {
+      showToast('Welcome back!');
+    }
     window.location.href = next;
   });
 }
 
 export async function setupRegister(form) {
+  if (!form) return;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors(form);
@@ -83,7 +88,7 @@ export async function setupRegister(form) {
     }
     const submit = form.querySelector('button[type="submit"]');
     submit.disabled = true;
-    submit.textContent = 'Creating account�';
+    submit.textContent = 'Creating account…';
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -95,15 +100,18 @@ export async function setupRegister(form) {
       return showError(form, 'reg-email', authErrorMessage(error, 'Create account'));
     } finally {
       submit.disabled = false;
-      submit.textContent = 'Create account';
+      submit.textContent = 'Create Account';
     }
-    showToast('Application received. Confirm your email, then wait for marketplace approval before shopping or selling.');
+    showToast('Application received! Confirm your email, then wait for administrator approval before shopping or selling.');
     const next = safeNextPage();
-    window.location.href = next ? 'login.html?next=' + encodeURIComponent(next) : 'login.html';
+    setTimeout(() => {
+      window.location.href = next ? 'login.html?next=' + encodeURIComponent(next) : 'login.html';
+    }, 800);
   });
 }
 
 export async function setupReset(form) {
+  if (!form) return;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors(form);
@@ -113,7 +121,7 @@ export async function setupReset(form) {
     }
     const submit = form.querySelector('button[type="submit"]');
     submit.disabled = true;
-    submit.textContent = 'Sending�';
+    submit.textContent = 'Sending…';
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) return showError(form, 'reset-email', authErrorMessage(error, 'Password reset'));
@@ -121,9 +129,11 @@ export async function setupReset(form) {
       return showError(form, 'reset-email', authErrorMessage(error, 'Password reset'));
     } finally {
       submit.disabled = false;
-      submit.textContent = 'Send reset link';
+      submit.textContent = 'Send Reset Link';
     }
     form.reset();
-    showToast('If an account exists for that email, you will receive a password reset link.');
+    showToast('If an account exists for that email, a reset link has been sent.');
   });
 }
+
+checkDbStatus();

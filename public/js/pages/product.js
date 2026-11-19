@@ -1,7 +1,19 @@
-// Product detail page
-import { supabase } from '/js/init.js';
-import { formatMoney, formatDateTime, escapeHtml, renderStars, showToast } from '/js/ui.js';
-import { renderAuthLinks, updateCartCount } from '/js/nav.js';
+// Product detail page: gallery, inventory-safe cart & buy-now, maker inquiry, reviews, reporting, related products
+import { supabase, getCurrentProfile, onAuthState } from '/js/init.js';
+import {
+  formatMoney,
+  formatDateTime,
+  escapeHtml,
+  escapeAttr,
+  renderStars,
+  showToast,
+  apiFetch,
+  checkDbStatus,
+  renderProductCard,
+  fetchUserFavoritesSet,
+  wireFavoriteButtons
+} from '/js/ui.js';
+import { renderAuthLinks, refreshCartCount } from '/js/nav.js';
 
 const params = new URLSearchParams(window.location.search);
 const productId = params.get('id');
@@ -10,62 +22,50 @@ const loadingEl = document.getElementById('product-loading');
 const contentEl = document.getElementById('product-content');
 const notFoundEl = document.getElementById('product-not-found');
 
-function showSetup(message) {
-  const b = document.getElementById('setup-banner');
-  b.innerHTML = '<strong>Setup needed:</strong> ' + escapeHtml(message) + ' Run <code>schema.sql</code> in your Supabase SQL Editor to enable the marketplace.';
-  b.style.display = 'block';
-}
+let currentProduct = null;
+let favoritedIds = new Set();
 
-async function loadDbStatus() {
-  try {
-    const res = await fetch('/api/db/status');
-    const status = await res.json();
-    const missing = Object.entries(status).filter(([, v]) => !v.exists).map(([k]) => k);
-    if (missing.length) showSetup('Database tables not found: ' + missing.join(', '));
-  } catch (_) {}
-}
+function renderGallery(product) {
+  const images = (product.product_images || [])
+    .filter(img => img.url)
+    .sort((a, b) => (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0) || (a.sort_order || 0) - (b.sort_order || 0));
 
-window.addEventListener('authstate', async () => {
-  const { currentUser } = await import('/js/init.js');
-  const prof = currentUser ? await supabase.from('profiles').select('role,display_name').eq('id', currentUser.id).maybeSingle() : null;
-  renderAuthLinks(currentUser, prof && prof.data);
-  if (currentUser) {
-    try {
-      const { data: cart } = await supabase.from('carts').select('id').eq('user_id', currentUser.id).maybeSingle();
-      if (cart) {
-        const { data: items } = await supabase.from('cart_items').select('quantity').eq('cart_id', cart.id);
-        updateCartCount(items ? items.reduce((s, i) => s + (i.quantity || 0), 0) : 0);
-      }
-    } catch (_) {}
-  } else { updateCartCount(0); }
-});
+  const mainEl = document.getElementById('product-gallery-main');
+  const thumbEl = document.getElementById('product-gallery-thumbs');
 
-async function loadProduct() {
-  if (!supabase || !productId) { notFoundEl.style.display = 'block'; loadingEl.style.display = 'none'; return; }
-  const { data, error } = await supabase
-    .from('products')
-    .select('*, product_images(*), shops(*)')
-    .eq('id', productId)
-    .single();
-  if (error || !data) {
-    loadingEl.style.display = 'none';
-    notFoundEl.style.display = 'block';
+  const setMain = (idx) => {
+    const chosen = images[idx];
+    const url = chosen ? chosen.url : '/images/placeholder.svg';
+    mainEl.innerHTML = `<img src="${escapeAttr(url)}" alt="${escapeAttr(product.name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='/images/placeholder.svg'">`;
+    thumbEl.querySelectorAll('.gallery-thumb').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+  };
+
+  if (!images.length) {
+    setMain(-1);
+    thumbEl.innerHTML = '';
     return;
   }
-  const p = data;
-  document.title = escapeHtml(p.name) + ' — YouMadeIt';
-  document.getElementById('product-name').textContent = p.name;
-  document.getElementById('product-description').textContent = p.description || 'No description provided.';
-  document.getElementById('product-price').textContent = formatMoney(p.price_cents, p.currency);
-  document.getElementById('product-seller-name').textContent = p.shops?.name || 'Unknown maker';
-  document.getElementById('product-seller-name').onclick = () => { window.location.href = 'seller-shop.html?slug=' + encodeURIComponent(p.shops?.slug || ''); };
-  document.getElementById('product-seller-name').style.cursor = 'pointer';
 
-  const meta = [];
-  if (p.status !== 'published') meta.push('<span class="badge badge-draft">Draft / not public</span>');
-  meta.push('<span class="badge badge-success">By ' + escapeHtml(p.shops?.name || 'a maker') + '</span>');
-  document.getElementById('product-meta').innerHTML = meta.join('');
+  thumbEl.innerHTML = images.length > 1
+    ? images.map((img, i) => `
+        <button type="button" class="gallery-thumb${i === 0 ? ' active' : ''}" data-img-index="${i}" aria-label="View image ${i + 1}">
+          <img src="${escapeAttr(img.url)}" alt="" loading="lazy" onerror="this.src='/images/placeholder.svg'">
+        </button>
+      `).join('')
+    : '';
 
+  thumbEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.gallery-thumb[data-img-index]');
+    if (!btn) return;
+    setMain(parseInt(btn.dataset.imgIndex, 10) || 0);
+  });
+
+  setMain(0);
+}
+
+function renderAttributes(p) {
   const attrs = [];
   if (p.materials) attrs.push({ label: 'Materials', value: p.materials });
   if (p.dimensions) attrs.push({ label: 'Dimensions', value: p.dimensions });
@@ -75,273 +75,434 @@ async function loadProduct() {
   if (p.personalization) attrs.push({ label: 'Personalization', value: p.personalization });
   if (p.processing_time) attrs.push({ label: 'Processing time', value: p.processing_time });
   if (p.shipping_info) attrs.push({ label: 'Shipping', value: p.shipping_info });
+
   const attrEl = document.getElementById('product-attrs');
-  attrEl.innerHTML = attrs.length ? '<h4 style="margin:0 0 0.75rem">Product details</h4>' + attrs.map(a => `
-    <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);gap:1rem">
-      <span style="color:var(--text-secondary);font-weight:500">${escapeHtml(a.label)}</span>
-      <span style="text-align:right;max-width:60%">${escapeHtml(a.value)}</span>
-    </div>`).join('') : '<p class="text-secondary" style="margin:0">No additional details provided.</p>';
-
-  const stock = p.quantity == null ? 0 : p.quantity;
-  const stockEl = document.getElementById('product-stock');
-  if (stock <= 0) stockEl.innerHTML = '<div class="product-stock out" style="color:var(--danger)">Sold out</div>';
-  else if (stock <= 3) stockEl.innerHTML = '<div class="product-stock low" style="color:var(--warning)">Only ' + stock + ' left in stock</div>';
-  else stockEl.innerHTML = '<div class="text-secondary" style="font-size:0.9rem">' + stock + ' in stock</div>';
-
-  const images = (p.product_images || []).filter(img => img.url);
-  const mainEl = document.getElementById('product-gallery-main');
-  const thumbEl = document.getElementById('product-gallery-thumbs');
-  const setImg = (url) => { mainEl.innerHTML = '<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(p.name) + '" style="width:100%;height:100%;object-fit:cover" onerror="this.src=\'/images/placeholder.svg\'">'; };
-  if (images.length) {
-    setImg(images[0].url);
-    thumbEl.innerHTML = images.map((img, i) =>
-      '<div style="width:64px;height:80px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;margin-right:0.5rem' + (i === 0 ? ';border-color:var(--brand-purple)' : '') + '"><img src="' + escapeHtml(img.url) + '" style="width:100%;height:100%;object-fit:cover" onclick="(function(){setMain(' + i + ')})()"></div>').join('');
-  } else {
-    mainEl.innerHTML = '<div style="width:100%;height:100%;background:var(--warm-beige);display:flex;align-items:center;justify-content:center;color:var(--text-secondary)">No images</div>';
+  if (!attrs.length) {
+    attrEl.innerHTML = '<p class="text-secondary" style="margin:0; font-size:0.9rem">Handmade in small batches. Message the maker if you have custom requests!</p>';
+    return;
   }
-  window.setMain = (i) => { setImg(images[i].url); document.querySelectorAll('#product-gallery-thumbs > div').forEach((d, idx) => { d.style.borderColor = idx === i ? 'var(--brand-purple)' : 'var(--border)'; }); };
+  attrEl.innerHTML = '<h4 style="margin:0 0 0.6rem">Craft Details</h4>' + attrs.map(a => `
+    <div style="display:flex;justify-content:space-between;padding:0.48rem 0;border-bottom:1px dashed var(--border);gap:1rem;font-size:0.9rem">
+      <span class="text-secondary" style="font-weight:700">${escapeHtml(a.label)}</span>
+      <span style="text-align:right;max-width:65%">${escapeHtml(a.value)}</span>
+    </div>`).join('');
+}
 
-  const actions = document.getElementById('product-actions');
-  const { currentUser } = await import('/js/init.js');
-  const isSoldOut = stock <= 0;
-  let html = '<div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">';
-  html += '<div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:0.4rem"><label for="product-qty" style="font-size:0.9rem;color:var(--text-secondary)">Quantity:</label> ';
-  html += '<input type="number" id="product-qty" value="1" min="1" max="' + stock + '" ' + (isSoldOut ? 'disabled' : '') + ' style="width:70px;padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius)"> </div>';
-  if (isSoldOut) {
-    html += '<button class="btn btn-ghost" disabled>Sold out</button>';
-  } else {
-    html += '<button id="product-add-cart" class="btn btn-primary">Add to cart</button> ';
-  }
-  html += '<button class="fav-btn" id="product-fav" data-product-id="' + p.id + '" aria-label="Favorite"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div>';
+function renderActions(p) {
+  const stock = p.quantity == null ? 0 : Number(p.quantity);
+  const isAvailable = p.status === 'published' && p.moderation_status === 'approved' && stock > 0;
+  const isFav = favoritedIds.has(p.id);
   const actionsDiv = document.getElementById('product-actions');
-  actionsDiv.innerHTML = html;
-  const contactBtn = document.createElement('button');
-  contactBtn.type = 'button';
-  contactBtn.className = 'btn btn-outline';
-  contactBtn.textContent = 'Contact the seller';
-  actionsDiv.appendChild(contactBtn);
+
+  actionsDiv.innerHTML = `
+    <div class="flex" style="gap:0.75rem; align-items:center;">
+      <div class="qty-stepper" aria-label="Quantity selector">
+        <button type="button" id="qty-dec" aria-label="Decrease quantity" ${!isAvailable ? 'disabled' : ''}>&minus;</button>
+        <input type="number" id="product-qty" value="1" min="1" max="${Math.max(1, stock)}" ${!isAvailable ? 'disabled' : ''} aria-label="Quantity">
+        <button type="button" id="qty-inc" aria-label="Increase quantity" ${!isAvailable ? 'disabled' : ''}>+</button>
+      </div>
+      ${isAvailable
+        ? `<button type="button" id="product-add-cart" class="btn btn-primary">Add to Cart</button>
+           <button type="button" id="product-buy-now" class="btn btn-coral">Buy Now</button>`
+        : `<button type="button" class="btn btn-ghost" disabled>${stock <= 0 ? 'Sold out' : 'Unavailable'}</button>`}
+      <button type="button" class="fav-btn${isFav ? ' active' : ''}" id="product-fav" data-product-id="${escapeAttr(p.id)}" aria-label="Toggle favorite" style="position:static">
+        <svg class="fav-icon" width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+      ${p.shops ? `<button type="button" id="toggle-inquiry-btn" class="btn btn-outline btn-sm">Message Maker</button>` : ''}
+    </div>
+  `;
+
+  const qtyInput = document.getElementById('product-qty');
+  const clampQty = () => {
+    let val = parseInt(qtyInput.value, 10) || 1;
+    val = Math.max(1, Math.min(Math.max(1, stock), val));
+    qtyInput.value = String(val);
+    return val;
+  };
+  document.getElementById('qty-dec')?.addEventListener('click', () => {
+    qtyInput.value = String(Math.max(1, (parseInt(qtyInput.value, 10) || 1) - 1));
+  });
+  document.getElementById('qty-inc')?.addEventListener('click', () => {
+    qtyInput.value = String(Math.min(stock, (parseInt(qtyInput.value, 10) || 1) + 1));
+  });
+  qtyInput?.addEventListener('change', clampQty);
 
   document.getElementById('product-add-cart')?.addEventListener('click', async () => {
-    const qty = parseInt(document.getElementById('product-qty').value) || 1;
-    if (qty > stock) {
-      return showToast('Not enough stock available.', 'error');
+    const qty = clampQty();
+    const { currentUser } = await import('/js/init.js');
+    if (!currentUser) {
+      window.location.href = 'login.html?next=' + encodeURIComponent('product.html?id=' + p.id);
+      return;
     }
-    const { currentUser: u } = await import('/js/init.js');
-    if (!u) { window.location.href = 'login.html'; return; }
-    let { data: cart } = await supabase.from('carts').select('id').eq('user_id', u.id).maybeSingle();
-    if (!cart) {
-      const { data: created } = await supabase.from('carts').insert([{ user_id: u.id }]).select().single();
-      cart = created;
+    const profile = await getCurrentProfile();
+    if (profile && profile.role !== 'admin' && profile.approval_status !== 'approved') {
+      showToast('Your account must be approved by an admin before adding items to cart.', 'error');
+      return;
     }
-    const { data: existing } = await supabase.from('cart_items').select('*').eq('cart_id', cart.id).eq('product_id', p.id).maybeSingle();
-    if (existing) {
-      await supabase.from('cart_items').update({ quantity: existing.quantity + qty }).eq('id', existing.id);
-    } else {
-      await supabase.from('cart_items').insert([{ cart_id: cart.id, product_id: p.id, quantity: qty }]);
-    }
-    showToast(p.name + ' added to cart.');
-    updateCartCountBadge();
-  });
 
-  document.getElementById('product-fav')?.addEventListener('click', async (e) => {
-    e.preventDefault(); e.stopPropagation();
-    const { currentUser: u } = await import('/js/init.js');
-    if (!u) { window.location.href = 'login.html'; return; }
-    const btn = document.getElementById('product-fav');
-    const { data: existing } = await supabase.from('favorites').select('id').eq('product_id', p.id).maybeSingle();
-    if (existing) {
-      await supabase.from('favorites').delete().eq('id', existing.id);
-      btn.classList.remove('active');
-    } else {
-      await supabase.from('favorites').insert([{ product_id: p.id }]);
-      btn.classList.add('active');
-    }
-  });
-
-  // Initial favorite state
-  (async () => {
+    const btn = document.getElementById('product-add-cart');
+    btn.disabled = true;
     try {
-      const { currentUser: u2 } = await import('/js/init.js');
-      if (u2) {
-        const { data: fav } = await supabase.from('favorites').select('id').eq('product_id', p.id).eq('user_id', u2.id).maybeSingle();
-        if (fav) btn.classList.add('active');
+      let { data: cart, error: cartErr } = await supabase.from('carts').select('id').eq('user_id', currentUser.id).maybeSingle();
+      if (cartErr) throw cartErr;
+      if (!cart) {
+        const { data: created, error: createErr } = await supabase.from('carts').insert([{ user_id: currentUser.id }]).select().single();
+        if (createErr) throw createErr;
+        cart = created;
       }
-    } catch (_) {}
-  })();
+      const { data: existing } = await supabase
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('cart_id', cart.id)
+        .eq('product_id', p.id)
+        .maybeSingle();
 
-  // Review eligibility: a buyer may review a product from a completed order.
-  // The server enforces this via Row Level Security on the reviews table.
-  (async () => {
-    try {
-      const { currentUser: u3 } = await import('/js/init.js');
-      if (!u3) return;
-      const { data: mine } = await supabase.from('reviews').select('id, rating, comment, created_at').eq('product_id', p.id).eq('buyer_id', u3.id).order('created_at', { ascending: false }).limit(1);
-      const reviewsEl = document.getElementById('product-reviews');
-      if (mine && mine.length) {
-        reviewsEl.insertAdjacentHTML('beforeend', '<p class="form-hint" style="margin-top:1rem">You reviewed this product on ' + formatDateTime(mine[0].created_at) + '.</p>');
+      const nextQty = (existing ? existing.quantity : 0) + qty;
+      if (nextQty > stock) {
+        showToast(`Cannot exceed available stock (${stock} left; you already have ${existing?.quantity || 0} in cart).`, 'error');
         return;
       }
-      const { data: items } = await supabase.from('order_items').select('id, orders(status, created_at)').eq('product_id', p.id).eq('orders.buyer_id', u3.id).eq('orders.status', 'completed').order('orders.created_at', { ascending: false }).limit(1);
-      const eligible = (items || [])[0];
-      if (!eligible) return;
-      const orderItemId = eligible.id;
-      const formHtml = '<div class="review-form" style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-top:1.5rem">' +
-        '<h4 style="margin-top:0">Write a review</h4>' +
-        '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">' +
-        '<span style="font-size:1.3rem;color:var(--text-secondary)">Rating</span>' +
-        '<div id="review-stars" style="color:#d8cee3;cursor:pointer;display:flex;gap:0.25rem;font-size:1.4rem">&#9734;&#9734;&#9734;&#9734;&#9734;</div>' +
-        '<input type="hidden" id="review-rating" value="0">' +
-        '</div>' +
-        '<textarea id="review-comment" class="form-textarea" placeholder="Share your experience with this handmade piece…" style="min-height:96px"></textarea>' +
-        '<button class="btn btn-primary btn-sm" id="review-submit">Submit review</button>' +
-        '<p id="review-message" style="color:var(--danger);font-size:0.85rem;margin-top:0.5rem;display:none"></p>' +
-        '</div>';
-      reviewsEl.insertAdjacentHTML('beforeend', formHtml);
-      let ratingValue = 0;
-      const starsEl = document.getElementById('review-stars');
-      const ratingInput = document.getElementById('review-rating');
-      const updateStars = () => {
-        starsEl.innerHTML = '';
-        for (let i = 1; i <= 5; i++) {
-          const s = document.createElement('span');
-          s.textContent = '&#9733;';
-          s.style.color = i <= ratingValue ? 'var(--brand-purple)' : 'var(--text-secondary)';
-          s.style.cursor = 'pointer';
-          s.dataset.value = i;
-          starsEl.appendChild(s);
-        }
-      };
-      starsEl.addEventListener('click', (e) => {
-        const v = parseInt(e.target.dataset.value, 10);
-        if (v) { ratingValue = v; ratingInput.value = v; updateStars(); }
-      });
-      updateStars();
-      document.getElementById('review-submit').addEventListener('click', async () => {
-        const comment = document.getElementById('review-comment').value.trim();
-        if (!ratingValue) return document.getElementById('review-message').textContent = 'Please select a rating.';
-        if (!comment) return document.getElementById('review-message').textContent = 'Please write a few words.';
-        document.getElementById('review-message').style.display = 'none';
-        const { error } = await supabase.from('reviews').insert([{
-          product_id: p.id, order_item_id: orderItemId, buyer_id: u3.id, rating: ratingValue, comment
-        }]);
-        if (error) return document.getElementById('review-message').textContent = error.message || 'Could not submit review.';
-        showToast('Review submitted.');
-        document.getElementById('review-submit').disabled = true;
-        document.getElementById('review-submit').textContent = 'Submitted';
-      });
-    } catch (_) {}
-  })();
+      if (existing) {
+        const { error } = await supabase.from('cart_items').update({ quantity: nextQty }).eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('cart_items').insert([{ cart_id: cart.id, product_id: p.id, quantity: qty }]);
+        if (error) throw error;
+      }
+      showToast(`${p.name} added to cart!`);
+      refreshCartCount();
+    } catch (err) {
+      showToast(err.message || 'Could not add item to cart.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
-  // Contact the seller (requires sign-in; stored as a seller inquiry).
-  (async () => {
-    try {
-      const { currentUser: u4 } = await import('/js/init.js');
-      if (!u4) return;
-      const actions = document.getElementById('product-actions');
-      const contactBtn = Array.from(actions.querySelectorAll('button')).find(b => b.textContent.includes('Contact'));
-      if (!contactBtn) return;
-      const formHtml = '<div id="inquiry-form-wrap" style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1.25rem;background:var(--surface-alt);display:none">' +
-        '<h4 style="margin-top:0">Message the maker</h4>' +
-        '<div class="form-group"><label for="inquiry-subject">Subject</label><input type="text" id="inquiry-subject" class="form-input" placeholder="Question about materials or personalisation"></div>' +
-        '<div class="form-group"><label for="inquiry-message">Message</label><textarea id="inquiry-message" class="form-textarea" placeholder="What would you like to ask?" style="min-height:96px"></textarea></div>' +
-        '<div style="display:flex;gap:0.75rem;flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="inquiry-submit">Send message</button><button class="btn btn-ghost btn-sm" id="inquiry-cancel">Cancel</button></div>' +
-        '<p id="inquiry-message-msg" style="color:var(--danger);font-size:0.85rem;margin-top:0.5rem;display:none"></p>' +
-        '</div>';
-      contactBtn.parentElement.insertAdjacentHTML('afterend', formHtml);
-      const wrap = document.getElementById('inquiry-form-wrap');
-      contactBtn.addEventListener('click', () => { wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none'; if (wrap.style.display === 'block') window.scrollTo({ top: wrap.offsetTop - 100, behavior: 'smooth' }); });
-      document.getElementById('inquiry-cancel').addEventListener('click', () => { wrap.style.display = 'none'; });
-      document.getElementById('inquiry-submit').addEventListener('click', async () => {
-        const subject = document.getElementById('inquiry-subject').value.trim();
-        const message = document.getElementById('inquiry-message').value.trim();
-        if (!subject || !message) return document.getElementById('inquiry-message-msg').textContent = 'Please fill in both fields.';
-        document.getElementById('inquiry-message-msg').style.display = 'none';
-        const { error } = await fetchJson('/api/seller-inquiries', {
-          shop_id: p.shops.id, product_id: p.id, subject, message
-        });
-        if (error) return document.getElementById('inquiry-message-msg').textContent = error;
-        showToast('Message sent to the seller.');
-        wrap.style.display = 'none';
-        document.getElementById('inquiry-subject').value = '';
-        document.getElementById('inquiry-message').value = '';
-      });
-    } catch (_) {}
-  })();
+  document.getElementById('product-buy-now')?.addEventListener('click', async () => {
+    const qty = clampQty();
+    const { currentUser } = await import('/js/init.js');
+    if (!currentUser) {
+      window.location.href = 'login.html?next=' + encodeURIComponent('product.html?id=' + p.id);
+      return;
+    }
+    const profile = await getCurrentProfile();
+    if (profile && profile.role !== 'admin' && profile.approval_status !== 'approved') {
+      showToast('Your account must be approved before placing an order.', 'error');
+      return;
+    }
+    window.location.href = `checkout.html?buyNow=${encodeURIComponent(p.id)}&qty=${qty}`;
+  });
+}
 
-  async function fetchJson(path, body) {
-    const { currentUser: cu } = await import('/js/init.js');
-    const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(path, {
+function wireInquiryForm(p) {
+  const slot = document.getElementById('product-inquiry-slot');
+  if (!slot || !p.shops) return;
+  slot.innerHTML = `
+    <div id="inquiry-form-wrap" class="sticky-note" style="display:none; margin-bottom: 1rem;">
+      <h4 style="margin-top:0">Message ${escapeHtml(p.shops.name)}</h4>
+      <div class="form-group">
+        <label for="inquiry-subject">Subject</label>
+        <input type="text" id="inquiry-subject" class="form-input" placeholder="Question about materials, pickup in Iloilo, or personalization">
+      </div>
+      <div class="form-group">
+        <label for="inquiry-message">Message</label>
+        <textarea id="inquiry-message" class="form-textarea" style="min-height:86px" placeholder="Write your note to the maker…"></textarea>
+      </div>
+      <p id="inquiry-message-msg" class="form-error" style="display:none"></p>
+      <div class="flex">
+        <button type="button" class="btn btn-primary btn-sm" id="inquiry-submit">Send message</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="inquiry-cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  const wrap = document.getElementById('inquiry-form-wrap');
+  const errEl = document.getElementById('inquiry-message-msg');
+  document.getElementById('toggle-inquiry-btn')?.addEventListener('click', async () => {
+    const { currentUser } = await import('/js/init.js');
+    if (!currentUser) {
+      window.location.href = 'login.html?next=' + encodeURIComponent('product.html?id=' + p.id);
+      return;
+    }
+    wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('inquiry-cancel')?.addEventListener('click', () => {
+    wrap.style.display = 'none';
+  });
+  document.getElementById('inquiry-submit')?.addEventListener('click', async () => {
+    const subject = document.getElementById('inquiry-subject').value.trim();
+    const message = document.getElementById('inquiry-message').value.trim();
+    errEl.style.display = 'none';
+    if (!subject || !message) {
+      errEl.textContent = 'Please enter both a subject and message.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const submitBtn = document.getElementById('inquiry-submit');
+    submitBtn.disabled = true;
+    const res = await apiFetch('/api/seller-inquiries', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: session ? 'Bearer ' + session.access_token : '' },
-      body: JSON.stringify(body)
+      body: { shop_id: p.shops.id, product_id: p.id, subject, message }
     });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) return { error: json.error || json.message || 'Request failed (' + res.status + ')' };
-    return { data: json };
+    submitBtn.disabled = false;
+    if (!res.ok) {
+      errEl.textContent = res.error;
+      errEl.style.display = 'block';
+      return;
+    }
+    showToast('Inquiry sent to the maker!');
+    document.getElementById('inquiry-subject').value = '';
+    document.getElementById('inquiry-message').value = '';
+    wrap.style.display = 'none';
+  });
+}
+
+async function loadReviewsAndForm(p) {
+  const el = document.getElementById('product-reviews');
+  const { data } = await supabase
+    .from('reviews')
+    .select('*, profiles:public_profiles(display_name, avatar_url)')
+    .eq('product_id', p.id)
+    .order('created_at', { ascending: false });
+
+  const rows = data || [];
+  let html = '';
+  if (!rows.length) {
+    html = '<p class="text-secondary">No reviews yet. Verified buyers can leave a review after confirming delivery.</p>';
+  } else {
+    const avg = rows.reduce((s, r) => s + r.rating, 0) / rows.length;
+    html = `
+      <div class="flex" style="margin-bottom: 1rem;">
+        <div style="font-size:1.35rem">${renderStars(avg, true)}</div>
+        <span class="text-secondary" style="font-size:0.9rem">${rows.length} review${rows.length !== 1 ? 's' : ''}</span>
+      </div>
+      ${rows.map(r => `
+        <article class="order-card" style="background:var(--color-cream)">
+          <div class="flex-between" style="margin-bottom:0.35rem">
+            <div><strong>${escapeHtml(r.profiles?.display_name || 'Verified Buyer')}</strong> ${renderStars(r.rating)}</div>
+            <span class="text-secondary" style="font-size:0.82rem">${formatDateTime(r.created_at)}</span>
+          </div>
+          <p style="margin:0">${escapeHtml(r.comment || '')}</p>
+          ${r.seller_response ? `
+            <div style="margin-top:0.65rem; padding:0.6rem 0.85rem; background:var(--surface-card); border-left:3px solid var(--color-sage); border-radius:var(--radius-sm); font-size:0.88rem">
+              <strong>Maker reply:</strong> ${escapeHtml(r.seller_response)}
+            </div>` : ''}
+        </article>
+      `).join('')}
+    `;
+  }
+  el.innerHTML = html;
+
+  // Check verified purchase eligibility
+  const { currentUser } = await import('/js/init.js');
+  if (!currentUser) return;
+
+  const { data: mine } = await supabase
+    .from('reviews')
+    .select('id, created_at')
+    .eq('product_id', p.id)
+    .eq('buyer_id', currentUser.id)
+    .limit(1);
+
+  if (mine && mine.length) {
+    el.insertAdjacentHTML('beforeend', '<p class="form-hint">You reviewed this creation on ' + formatDateTime(mine[0].created_at) + '.</p>');
+    return;
   }
 
-  loadingEl.style.display = 'none';
-  contentEl.style.display = 'block';
-  loadReviews();
-  loadRelated(p.category_id, p.shops.id, p.id);
-}
+  const { data: items } = await supabase
+    .from('order_items')
+    .select('id, orders!inner(status, buyer_id, created_at)')
+    .eq('product_id', p.id)
+    .eq('orders.buyer_id', currentUser.id)
+    .eq('orders.status', 'completed')
+    .limit(1);
 
-async function updateCartCountBadge() {
-  try {
-    const { currentUser: u } = await import('/js/init.js');
-    const { data: cart } = await supabase.from('carts').select('id').eq('user_id', u.id).maybeSingle();
-    if (cart) {
-      const { data: items } = await supabase.from('cart_items').select('quantity').eq('cart_id', cart.id);
-      updateCartCount(items ? items.reduce((s, i) => s + (i.quantity || 0), 0) : 0);
-    }
-  } catch (_) {}
-}
+  const eligible = (items || [])[0];
+  if (!eligible) return;
 
-async function loadReviews() {
-  const { data } = await supabase.from('reviews').select('*, profiles:public_profiles(display_name, avatar_url)').eq('product_id', productId).order('created_at', { ascending: false });
-  const rows = data || [];
-  const el = document.getElementById('product-reviews');
-  if (rows.length === 0) { el.innerHTML = '<p style="color:var(--text-secondary)">No reviews yet. Be the first to review this product!</p>'; return; }
-  const avg = rows.reduce((s, r) => s + r.rating, 0) / rows.length;
-  el.innerHTML = '<div style="margin-bottom:1rem"><div style="font-size:1.5rem;letter-spacing:0.1rem">' + renderStars(avg).split('<span class="rating-count">')[0] + '</div><div class="text-secondary" style="font-size:0.9rem">' + rows.length + ' review' + (rows.length !== 1 ? 's' : '') + '</div></div>' +
-    rows.map(r => `
-      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:0.75rem">
-        <div class="flex" style="justify-content:space-between;margin-bottom:0.4rem">
-          <div><strong>${escapeHtml(r.profiles?.display_name || 'A buyer')}</strong> ${renderStars(r.rating)}</div>
-          <div class="text-secondary" style="font-size:0.8rem">${formatDateTime(r.created_at)}</div>
-        </div>
-        <p style="margin:0">${escapeHtml(r.comment || '')}</p>
+  el.insertAdjacentHTML('beforeend', `
+    <div class="sticky-note" style="margin-top:1.25rem">
+      <h4 style="margin-top:0">Leave a Verified Review</h4>
+      <div class="flex" style="margin-bottom:0.75rem">
+        <span style="font-weight:700">Your rating:</span>
+        <div id="review-stars" style="display:flex;gap:0.25rem;font-size:1.5rem"></div>
       </div>
-    `).join('');
+      <textarea id="review-comment" class="form-textarea" placeholder="Share how this handmade piece turned out…" style="min-height:92px"></textarea>
+      <p id="review-message" class="form-error" style="display:none"></p>
+      <div style="margin-top:0.75rem">
+        <button type="button" class="btn btn-primary btn-sm" id="review-submit">Submit Review</button>
+      </div>
+    </div>
+  `);
+
+  let ratingValue = 0;
+  const starsEl = document.getElementById('review-stars');
+  const drawStars = () => {
+    starsEl.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = i <= ratingValue ? '★' : '☆';
+      btn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:1.5rem;padding:0;color:' + (i <= ratingValue ? '#E2A03F' : 'var(--text-tertiary)');
+      btn.setAttribute('aria-label', `Rate ${i} star${i > 1 ? 's' : ''}`);
+      btn.addEventListener('click', () => { ratingValue = i; drawStars(); });
+      starsEl.appendChild(btn);
+    }
+  };
+  drawStars();
+
+  document.getElementById('review-submit')?.addEventListener('click', async () => {
+    const comment = document.getElementById('review-comment').value.trim();
+    const msgEl = document.getElementById('review-message');
+    msgEl.style.display = 'none';
+    if (!ratingValue) {
+      msgEl.textContent = 'Please select a star rating.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    if (!comment) {
+      msgEl.textContent = 'Please write a short review.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    const submitBtn = document.getElementById('review-submit');
+    submitBtn.disabled = true;
+    const { error } = await supabase.from('reviews').insert([{
+      product_id: p.id,
+      order_item_id: eligible.id,
+      buyer_id: currentUser.id,
+      rating: ratingValue,
+      comment
+    }]);
+    if (error) {
+      submitBtn.disabled = false;
+      msgEl.textContent = error.message || 'Could not submit review.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    showToast('Thank you for reviewing this maker’s work!');
+    loadReviewsAndForm(p);
+  });
 }
 
-async function loadRelated(categoryId, shopId, excludeId) {
-  let query = supabase.from('products').select('*, product_images(*)').limit(6);
-  if (categoryId) query = query.eq('category_id', categoryId);
-  const { data } = await query;
-  const rows = (data || []).filter(p => p.id !== excludeId).slice(0, 4);
+async function loadRelated(categoryId, excludeId) {
   const el = document.getElementById('product-related');
-  if (rows.length === 0) { el.innerHTML = '<p style="color:var(--text-secondary)">No related products.</p>'; return; }
-  el.innerHTML = rows.map(p => {
-    const imgs = p.product_images || [];
-    const main = imgs.find(i => i.is_main && i.url) || imgs.find(i => i.url) || {};
-    const stock = p.quantity == null ? 0 : p.quantity;
-    return `
-      <article class="product-card">
-        <div class="product-card-media">
-          <img src="${escapeHtml(main.url || '/images/placeholder.svg')}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.src='/images/placeholder.svg'">
-          ${stock <= 0 ? '<span class="badge badge-outline">Sold out</span>' : ''}
-        </div>
-        <div class="product-card-info">
-          <div class="product-cat">${escapeHtml(p.category_name || 'Handmade')}</div>
-          <h3><a href="product.html?id=${p.id}">${escapeHtml(p.name)}</a></h3>
-          <div class="product-price">${formatMoney(p.price_cents, p.currency)}</div>
-        </div>
-      </article>
-    `;
-  }).join('');
+  let query = supabase
+    .from('products')
+    .select('*, product_images(*), categories(name, slug), shops(name, slug)')
+    .eq('status', 'published')
+    .eq('moderation_status', 'approved')
+    .neq('id', excludeId)
+    .order('created_at', { ascending: false })
+    .limit(4);
+  if (categoryId) query = query.eq('category_id', categoryId);
+
+  const { data } = await query;
+  const rows = data || [];
+  if (!rows.length) {
+    el.innerHTML = '<p class="text-secondary" style="grid-column:1/-1">Explore more creations in the <a href="shop.html">full shop</a>.</p>';
+    return;
+  }
+  el.innerHTML = rows.map(p => renderProductCard(p, { favoritedIds })).join('');
 }
 
-loadDbStatus();
+document.getElementById('report-listing-btn')?.addEventListener('click', async () => {
+  const { currentUser } = await import('/js/init.js');
+  if (!currentUser) {
+    window.location.href = 'login.html?next=' + encodeURIComponent('product.html?id=' + productId);
+    return;
+  }
+  const reason = window.prompt('Briefly describe the issue with this listing (e.g., misleading item, policy concern):');
+  if (!reason || !reason.trim()) return;
+  const { error } = await supabase.from('reports').insert([{
+    reporter_id: currentUser.id,
+    product_id: currentProduct.id,
+    reason: reason.trim().slice(0, 500)
+  }]);
+  if (error) {
+    showToast(error.message || 'Unable to submit report.', 'error');
+    return;
+  }
+  showToast('Report submitted for marketplace review.');
+});
+
+async function loadProduct() {
+  if (!supabase || !productId) {
+    loadingEl.style.display = 'none';
+    notFoundEl.style.display = 'block';
+    return;
+  }
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, product_images(*), categories(name, slug), shops(*)')
+    .eq('id', productId)
+    .single();
+
+  loadingEl.style.display = 'none';
+  if (error || !data) {
+    notFoundEl.style.display = 'block';
+    return;
+  }
+
+  currentProduct = data;
+  document.title = data.name + ' — YouMadeIt';
+  document.getElementById('product-name').textContent = data.name;
+  document.getElementById('product-description').textContent = data.description || 'Handmade in small batches.';
+  document.getElementById('product-price').textContent = formatMoney(data.price_cents, data.currency);
+
+  const sellerLink = document.getElementById('product-seller-link');
+  const locEl = document.getElementById('product-seller-location');
+  if (data.shops) {
+    sellerLink.textContent = data.shops.name;
+    sellerLink.href = 'seller-shop.html?slug=' + encodeURIComponent(data.shops.slug);
+    if (data.shops.location) locEl.textContent = ' · ' + data.shops.location;
+  } else {
+    sellerLink.textContent = 'Local Maker';
+  }
+
+  const meta = [];
+  if (data.categories?.name) meta.push(`<span class="product-category">${escapeHtml(data.categories.name)}</span>`);
+  if (data.status !== 'published') meta.push('<span class="badge badge-draft">Draft</span>');
+  if (data.moderation_status && data.moderation_status !== 'approved') {
+    meta.push(`<span class="badge badge-outline">Review: ${escapeHtml(data.moderation_status)}</span>`);
+  }
+  document.getElementById('product-meta').innerHTML = meta.join('');
+
+  const stock = data.quantity == null ? 0 : Number(data.quantity);
+  const stockEl = document.getElementById('product-stock');
+  if (stock <= 0) stockEl.innerHTML = '<span class="product-stock">Currently sold out</span>';
+  else if (stock <= 3) stockEl.innerHTML = `<span class="product-stock low">Only ${stock} left in stock</span>`;
+  else stockEl.innerHTML = `<span class="product-stock ok">${stock} available</span>`;
+
+  renderGallery(data);
+  renderAttributes(data);
+  renderActions(data);
+  wireInquiryForm(data);
+
+  contentEl.style.display = 'block';
+  loadReviewsAndForm(data);
+  loadRelated(data.category_id, data.id);
+}
+
+wireFavoriteButtons(document, { favoritedIds });
+
+onAuthState(async (e) => {
+  const user = e.detail?.user || null;
+  const profile = user ? await getCurrentProfile() : null;
+  renderAuthLinks(user, profile);
+  refreshCartCount();
+  if (user) {
+    favoritedIds = await fetchUserFavoritesSet();
+    if (currentProduct) {
+      renderActions(currentProduct);
+      loadReviewsAndForm(currentProduct);
+    }
+  } else {
+    favoritedIds = new Set();
+  }
+});
+
+checkDbStatus();
 loadProduct();

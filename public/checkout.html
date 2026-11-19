@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout — YouMadeIt</title>
+  <title>Checkout — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,62 +16,128 @@
   renderHeader({ currentPage: 'checkout' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Checkout</h2>
-  <div id="checkout-require-login" style="display:none; text-align:center; padding: 3rem">
-    <p><a href="login.html?next=checkout.html">Sign in</a> to check out.</p>
-  </div>
-  <div id="checkout-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div id="checkout-empty" class="empty-state" style="display:none"><h2>Your cart is empty</h2><p><a href="shop.html" class="btn btn-primary">Browse handmade goods</a></p></div>
-  <div id="checkout-form-wrap" style="display:none">
-    <div class="grid grid-cols-2" style="gap: var(--space-6); align-items: start;">
+
+<main class="page-main">
+  <div class="container section">
+    <div class="section-header" style="margin-bottom: var(--space-4);">
       <div>
-        <form id="checkout-form" class="content-box">
-          <h3 style="margin-top:0">Shipping details</h3>
-          <div class="form-group">
-            <label>Full name</label>
-            <input type="text" id="ship-name" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="ship-email" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Street address</label>
-            <input type="text" id="ship-address" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>City</label>
-            <input type="text" id="ship-city" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Postal code</label>
-            <input type="text" id="ship-postal" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Country</label>
-            <select id="ship-country" class="form-select" required>
-              <option>US</option><option>CA</option><option>GB</option><option>Other</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block" id="checkout-submit">Continue to payment</button>
-        </form>
+        <h1 class="section-title">Checkout</h1>
+        <p class="section-subtitle">Complete your delivery details for local Iloilo or nationwide shipping.</p>
       </div>
-      <div>
-        <div class="content-box" style="position:sticky; top: 80px;">
-          <h3 style="margin-top:0">Order summary</h3>
-          <div id="checkout-items"></div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
-          <div style="margin-bottom:1rem"><span id="checkout-total"></span></div>
-          <div style="margin-top:1rem">
-            <p class="form-hint"><strong>Test mode:</strong> No live payment provider is configured. Checkout completes as a sandbox (test) transaction so you can verify the full order flow.</p>
-          </div>
+      <a href="cart.html" class="btn btn-ghost btn-sm">&larr; Back to cart</a>
+    </div>
+
+    <div id="checkout-require-login" class="content-box empty-state" style="display:none">
+      <h3>Sign in to check out</h3>
+      <p>Sign in with an approved buyer account to place your order.</p>
+      <a href="login.html?next=checkout.html" class="btn btn-primary">Sign in</a>
+    </div>
+
+    <div id="checkout-pending-notice" class="sticky-note" style="display:none"></div>
+    <div id="checkout-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+
+    <div id="checkout-empty" class="content-box empty-state" style="display:none">
+      <h3>Your cart is empty</h3>
+      <p>Add handmade items to your cart before checking out.</p>
+      <a href="shop.html" class="btn btn-primary">Browse Handmade Goods</a>
+    </div>
+
+    <div id="checkout-form-wrap" style="display:none">
+      <div class="cart-layout">
+        <div>
+          <form id="checkout-form" class="content-box">
+            <h3 style="margin-top:0">Delivery &amp; Contact Details</h3>
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+              <div class="form-group">
+                <label for="ship-name">Full name</label>
+                <input type="text" id="ship-name" class="form-input" required placeholder="e.g. Maria Santos">
+              </div>
+              <div class="form-group">
+                <label for="ship-phone">Mobile number (optional)</label>
+                <input type="tel" id="ship-phone" class="form-input" placeholder="e.g. 0917 123 4567">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ship-email">Email address</label>
+              <input type="email" id="ship-email" class="form-input" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label for="ship-address">House / Street / Building</label>
+              <input type="text" id="ship-address" class="form-input" required placeholder="e.g. 14 Lopez Jaena St.">
+            </div>
+            <div class="grid grid-cols-2" style="gap: 1rem;">
+              <div class="form-group">
+                <label for="ship-barangay">Barangay / District</label>
+                <input type="text" id="ship-barangay" class="form-input" placeholder="e.g. Brgy. Sambag, Jaro">
+              </div>
+              <div class="form-group">
+                <label for="ship-city">City / Municipality</label>
+                <input type="text" id="ship-city" class="form-input" list="iloilo-cities" required value="Iloilo City">
+                <datalist id="iloilo-cities">
+                  <option value="Iloilo City"></option>
+                  <option value="Pavia"></option>
+                  <option value="Oton"></option>
+                  <option value="Santa Barbara"></option>
+                  <option value="Leganes"></option>
+                  <option value="San Miguel"></option>
+                  <option value="Miagao"></option>
+                  <option value="Tigbauan"></option>
+                  <option value="Cabatuan"></option>
+                  <option value="Pototan"></option>
+                  <option value="Passi City"></option>
+                </datalist>
+              </div>
+            </div>
+            <div class="grid grid-cols-3" style="gap: 1rem;">
+              <div class="form-group">
+                <label for="ship-province">Province</label>
+                <input type="text" id="ship-province" class="form-input" value="Iloilo" required>
+              </div>
+              <div class="form-group">
+                <label for="ship-postal">Postal code</label>
+                <input type="text" id="ship-postal" class="form-input" value="5000" required>
+              </div>
+              <div class="form-group">
+                <label for="ship-country">Country</label>
+                <select id="ship-country" class="form-select" required>
+                  <option value="Philippines">Philippines</option>
+                  <option value="International">International</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ship-delivery">Delivery preference</label>
+              <select id="ship-delivery" class="form-select">
+                <option value="standard">Local Iloilo Courier / Standard Shipping</option>
+                <option value="meetup">Iloilo City Meetup (coordinate with maker)</option>
+                <option value="nationwide">Nationwide Courier (PH)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ship-notes">Order notes (optional)</label>
+              <textarea id="ship-notes" class="form-textarea" style="min-height:80px" placeholder="Gift note, landmark, or personalization details…"></textarea>
+            </div>
+            <div id="checkout-error" class="form-error" style="display:none; margin-bottom:0.85rem"></div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="checkout-submit">Complete Sandbox Order</button>
+          </form>
         </div>
+
+        <aside>
+          <div class="content-box" style="position:sticky; top: 112px;">
+            <h3 style="margin-top:0">Order Summary</h3>
+            <div id="checkout-items"></div>
+            <hr style="border:none;border-top:2px dashed var(--border);margin:1rem 0">
+            <div class="flex-between" style="margin-bottom:1rem"><span id="checkout-total"></span></div>
+            <div class="sandbox-banner">
+              <strong>Sandbox Test Mode:</strong> Payments are simulated in test mode so you can verify the complete marketplace order lifecycle. No live payment gateway or real charge occurs.
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   </div>
-  <div id="checkout-error" style="color:var(--danger); margin-top: var(--space-4); display:none"></div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/checkout.js"></script>
 </body>
 </html>

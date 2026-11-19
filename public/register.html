@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create an account — YouMadeIt</title>
+  <title>Create Account — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,36 +16,45 @@
   renderHeader({ currentPage: 'register' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div class="grid grid-cols-2" style="align-items: start;">
-    <div>
-      <h2 class="section-title">Create your account</h2>
-      <p>Join YouMadeIt to buy from independent makers, save your favorites, and track your orders.</p>
-    </div>
-    <div>
-      <form id="register-form" class="content-box">
-        <div class="form-group">
-          <label for="reg-name">Display name</label>
-          <input type="text" id="reg-name" name="display-name" class="form-input" required placeholder="e.g. Maya Lin">
-        </div>
-        <div class="form-group">
-          <label for="reg-email">Email address</label>
-          <input type="email" id="reg-email" name="email" class="form-input" required placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-          <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" name="password" class="form-input" required minlength="8">
-          <p class="form-hint">At least 8 characters.</p>
-        </div>
-        <div class="form-group">
-          <label><input type="checkbox" name="terms" required> I accept the <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a></label>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Create account</button>
-        <p class="form-hint" style="text-align:center; margin-top: var(--space-4)">Already have an account? <a href="login.html">Sign in</a></p>
-      </form>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="grid grid-cols-2" style="align-items: start;">
+      <div class="sticky-note">
+        <span class="badge badge-purple" style="margin-bottom:0.65rem">Join the Community</span>
+        <h1 class="section-title">Create your account</h1>
+        <p>Join Iloilo’s local handmade marketplace to support independent artists, save creations you love, and open your own maker storefront.</p>
+        <p class="text-secondary" style="margin:0; font-size:0.9rem">After signing up, confirm your email and allow a brief review while our administrators approve your account.</p>
+      </div>
+      <div>
+        <form id="register-form" class="content-box">
+          <div class="form-group">
+            <label for="reg-name">Display name</label>
+            <input type="text" id="reg-name" name="display-name" class="form-input" required placeholder="e.g. Clara Villanueva" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email address</label>
+            <input type="email" id="reg-email" name="email" class="form-input" required placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" name="password" class="form-input" required minlength="8" autocomplete="new-password">
+            <p class="form-hint" style="margin-top:0.25rem">Minimum 8 characters.</p>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:flex-start;gap:0.5rem;font-weight:600">
+              <input type="checkbox" name="terms" required style="margin-top:0.25rem">
+              <span>I accept the <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>.</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          <p class="form-hint" style="text-align:center; margin-top: 1rem; margin-bottom:0">Already have an account? <a href="login.html">Sign in</a></p>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/auth-page.js"></script>
 <script type="module">
   import { setupRegister } from '/js/pages/auth-page.js';

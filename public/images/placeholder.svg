@@ -1,4 +1,9 @@
-﻿<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="400" fill="#f5f0ea"/>
-  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="#666" text-anchor="middle" dominant-baseline="middle">No Image</text>
+﻿<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#FFF5DF"/>
+  <rect x="24" y="24" width="352" height="352" rx="28" fill="#FFFCF5" stroke="#C5D5A4" stroke-width="4" stroke-dasharray="10 8"/>
+  <circle cx="200" cy="176" r="56" fill="#D6E6AE" stroke="#526F3D" stroke-width="4"/>
+  <path d="M180 184c12-22 32-30 48-28-4 20-20 34-48 28z" fill="#8EAD68" stroke="#526F3D" stroke-width="3.5"/>
+  <path d="M190 198c-10-12-16-24-14-36" fill="none" stroke="#526F3D" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="200" y="274" font-family="Nunito, Segoe UI, sans-serif" font-size="22" font-weight="700" fill="#526F3D" text-anchor="middle">Handmade Preview</text>
+  <text x="200" y="302" font-family="Nunito, Segoe UI, sans-serif" font-size="15" fill="#7A8F73" text-anchor="middle">Photo coming soon</text>
 </svg>

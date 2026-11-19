@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Favorites — YouMadeIt</title>
+  <title>Favorites — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,22 +16,45 @@
   renderHeader({ currentPage: 'favorites' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div class="section-header" style="margin-bottom: var(--space-6);">
-    <div>
-      <h2 class="section-title">Your favorites</h2>
-      <p class="section-subtitle">Saved pieces you love, ready when you are.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="page-sheet">
+      <div class="section-header" style="margin-bottom: var(--space-4);">
+        <div>
+          <h1 class="section-title">Your Favorites</h1>
+          <p class="section-subtitle">Saved handmade pieces from Iloilo creators, ready whenever you are.</p>
+        </div>
+        <div class="sort-control" id="fav-sort-wrap" style="display:none">
+          <label for="fav-sort">Sort</label>
+          <select id="fav-sort" class="form-select">
+            <option value="saved-desc">Recently saved</option>
+            <option value="saved-asc">Oldest saved</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="alpha-asc">Name: A–Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="fav-require-login" class="empty-state" style="display:none">
+        <h3>Sign in to view saved favorites</h3>
+        <p>Keep a wishlist of handmade pieces you love.</p>
+        <a href="login.html?next=favorites.html" class="btn btn-primary">Sign in</a>
+      </div>
+      <div id="fav-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+      <div id="fav-empty" class="empty-state" style="display:none">
+        <h3>No favorites saved yet</h3>
+        <p>Tap the heart icon on any creation to keep it here.</p>
+        <a href="shop.html" class="btn btn-primary">Explore Handmade Goods</a>
+      </div>
+      <div id="fav-content-box" style="display:none">
+        <div id="fav-grid" class="products-grid"></div>
+      </div>
     </div>
   </div>
-  <div id="fav-require-login" style="display:none; text-align:center; padding: 3rem">
-    <p><a href="login.html?next=favorites.html">Sign in</a> to see your saved products.</p>
-  </div>
-  <div id="fav-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-  <div id="fav-empty" class="empty-state" style="display:none"><h2>No favorites yet</h2><p><a href="shop.html" class="btn btn-primary">Browse handmade goods</a></p></div>
-  <div class="content-box" id="fav-content-box" style="display:none">
-    <div id="fav-grid" class="favorites-grid"></div>
-  </div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/favorites.js"></script>
 </body>
 </html>

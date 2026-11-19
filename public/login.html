@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign in — YouMadeIt</title>
+  <title>Sign in — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,34 +16,39 @@
   renderHeader({ currentPage: 'login' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div class="grid grid-cols-2" style="align-items: start;">
-    <div>
-      <h2 class="section-title">Welcome back</h2>
-      <p>Sign in to your YouMadeIt account to manage your orders, favorites, and shop.</p>
-    </div>
-    <div>
-      <form id="login-form" class="content-box">
-        <div class="form-group">
-          <label for="login-email">Email address</label>
-          <input type="email" id="login-email" name="email" class="form-input" required placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" name="password" class="form-input" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
-        <p class="form-hint" style="text-align:center; margin-top: var(--space-4)">New to YouMadeIt? <a href="register.html">Create an account</a></p>
-        <p class="form-hint" style="text-align:center">Forgot your password? <a href="reset-password.html">Reset it</a></p>
-      </form>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="grid grid-cols-2" style="align-items: start;">
+      <div class="sticky-note">
+        <span class="badge badge-purple" style="margin-bottom:0.65rem">Welcome Back</span>
+        <h1 class="section-title">Sign in to YouMadeIt</h1>
+        <p>Access your saved handmade favorites, track orders from local Iloilo makers, or manage your Seller Studio.</p>
+        <p class="text-secondary" style="margin:0; font-size:0.9rem">New accounts require quick email confirmation and admin approval before shopping or opening a seller shop.</p>
+      </div>
+      <div>
+        <form id="login-form" class="content-box">
+          <div class="form-group">
+            <label for="login-email">Email address</label>
+            <input type="email" id="login-email" name="email" class="form-input" required placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" class="form-input" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+          <p class="form-hint" style="text-align:center; margin-top: 1rem">New to YouMadeIt? <a href="register.html">Create an account</a></p>
+          <p class="form-hint" style="text-align:center; margin-bottom:0">Forgot your password? <a href="reset-password.html">Reset it</a></p>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/auth-page.js"></script>
 <script type="module">
   import { setupLogin } from '/js/pages/auth-page.js';
-  const form = document.getElementById('login-form');
-  setupLogin(form, 'index.html');
+  setupLogin(document.getElementById('login-form'), 'index.html');
 </script>
 </body>
 </html>

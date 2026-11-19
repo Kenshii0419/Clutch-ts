@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order management — YouMadeIt</title>
+  <title>Order Management — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,53 +13,81 @@
   import { initSupabase } from '/js/init.js';
   initSupabase();
   import { renderHeader } from '/js/nav.js';
-  renderHeader({ currentPage: 'seller' });
+  renderHeader({ currentPage: 'seller-orders' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <h2 class="section-title">Order management</h2>
-  <div id="seller-orders-require-auth" style="display:none; text-align:center; padding: 3rem">
-    <p><a href="login.html?next=seller-orders.html">Sign in</a> to manage orders.</p>
-  </div>
-  <div id="seller-orders-wrap" style="display:none">
-    <div id="orders-loading" class="loading-state" style="text-align:center"><div class="skeleton-lg"></div></div>
-    <div class="content-box" id="orders-content-box" style="display:none">
-      <div class="list-toolbar">
-        <div class="list-toolbar-left"><span class="text-secondary" style="font-size:0.875rem">Orders for your shop</span></div>
-        <div class="list-toolbar-right">
-          <div class="sort-control">
-            <label for="seller-orders-sort">Sort</label>
-            <select id="seller-orders-sort" class="form-select">
-              <option value="date-desc">Date: newest</option>
-              <option value="date-asc">Date: oldest</option>
-              <option value="total-desc">Total: high to low</option>
-              <option value="total-asc">Total: low to high</option>
-              <option value="alpha-asc">Order #: A–Z</option>
-              <option value="alpha-desc">Order #: Z–A</option>
-            </select>
+
+<main class="page-main">
+  <div class="container section">
+    <div class="section-header" style="margin-bottom: var(--space-4);">
+      <div>
+        <h1 class="section-title">Shop Order Management</h1>
+        <p class="section-subtitle">Prepare orders, update tracking numbers, and keep buyers informed.</p>
+      </div>
+      <a href="seller-dashboard.html" class="btn btn-ghost btn-sm">&larr; Back to Studio</a>
+    </div>
+
+    <div id="seller-orders-require-auth" class="seller-entry" style="display:none">
+      <h2>Sign in to manage shop orders</h2>
+      <p>View incoming purchases and mark items as shipped.</p>
+      <a href="login.html?next=seller-orders.html" class="btn btn-primary">Sign in</a>
+    </div>
+
+    <div id="seller-orders-wrap" style="display:none">
+      <div id="orders-loading" class="loading-state"><div class="skeleton-lg"></div></div>
+      <div class="content-box" id="orders-content-box" style="display:none">
+        <div class="list-toolbar">
+          <div class="list-toolbar-left">
+            <span class="text-secondary" style="font-size:0.9rem;font-weight:700">Orders for your shop</span>
+          </div>
+          <div class="list-toolbar-right">
+            <div class="sort-control">
+              <label for="seller-orders-sort">Sort</label>
+              <select id="seller-orders-sort" class="form-select">
+                <option value="date-desc">Date: Newest</option>
+                <option value="date-asc">Date: Oldest</option>
+                <option value="total-desc">Total: High to Low</option>
+                <option value="total-asc">Total: Low to High</option>
+                <option value="alpha-asc">Order #: A–Z</option>
+              </select>
+            </div>
           </div>
         </div>
+        <div id="orders-table-wrap" class="table-wrap"></div>
       </div>
-      <div id="orders-table-wrap" class="table-wrap"></div>
     </div>
   </div>
-</div>
+</main>
+
 <div class="backdrop" id="ship-modal" style="display:none">
   <div class="modal">
-    <div class="modal-header"><h3>Mark as shipped</h3><button class="modal-close" id="ship-modal-close">&times;</button></div>
-    <div class="modal-body">
-      <form id="ship-form">
-        <div class="form-group"><label>Tracking number (optional)</label><input type="text" id="ship-tracking" class="form-input" placeholder="e.g. CRAFT123456789"></div>
-        <div class="form-group"><label>Note (e.g. delivery estimate)</label><input type="text" id="ship-note" class="form-input" placeholder="What's in the box, delivery time…"></div>
-        <div class="form-group"><label>From</label><input type="text" id="ship-seller" class="form-input" readonly></div>
-      </form>
+    <div class="modal-header">
+      <h3>Mark Order as Shipped</h3>
+      <button type="button" class="modal-close" id="ship-modal-close" aria-label="Close">&times;</button>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="ship-cancel">Cancel</button>
-      <button class="btn btn-primary" id="ship-confirm">Confirm shipped</button>
-    </div>
+    <form id="ship-form">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="ship-tracking">Tracking number (optional)</label>
+          <input type="text" id="ship-tracking" class="form-input" placeholder="e.g. LBC-123456789 or Iloilo Rider">
+        </div>
+        <div class="form-group">
+          <label for="ship-note">Note for the buyer (optional)</label>
+          <input type="text" id="ship-note" class="form-input" placeholder="Courier name, estimated arrival, or meetup details…">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="ship-seller">From studio</label>
+          <input type="text" id="ship-seller" class="form-input" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="ship-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="ship-confirm">Confirm Shipped</button>
+      </div>
+    </form>
   </div>
 </div>
+
 <script type="module" src="/js/pages/seller-orders.js"></script>
 </body>
 </html>

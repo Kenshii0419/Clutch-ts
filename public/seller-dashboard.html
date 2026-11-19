@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seller dashboard — YouMadeIt</title>
+  <title>Seller Studio — YouMadeIt Iloilo</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,46 +16,136 @@
   renderHeader({ currentPage: 'seller' });
 </script>
 <div id="setup-banner"></div>
-<div class="container section warm-bg">
-  <div id="seller-dashboard-header" class="section-header" style="display:none; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-2)">
-    <div>
-      <h2 class="section-title">Seller dashboard</h2>
-      <p class="section-subtitle">Manage your shop, listings, and customer orders from one place.</p>
+
+<main class="page-main">
+  <div class="container section">
+    <div id="seller-dashboard-header" class="section-header" style="display:none; margin-bottom: var(--space-4);">
+      <div>
+        <h1 class="section-title">Seller Studio</h1>
+        <p class="section-subtitle">Manage your Iloilo storefront, handmade listings, inventory, and orders.</p>
+      </div>
+      <div class="flex">
+        <a href="#" id="view-storefront-link" class="btn btn-outline btn-sm" style="display:none">View Storefront</a>
+        <a href="seller-orders.html" class="btn btn-outline btn-sm">Orders</a>
+        <a href="seller-products.html" class="btn btn-primary btn-sm">+ Manage Products</a>
+      </div>
     </div>
-    <a href="seller-products.html" class="btn btn-primary">Add a product</a>
-  </div>
-  <div id="seller-require-auth" class="seller-entry" style="display:none">
-    <h2>Sign in to your maker workspace</h2>
-    <p>Manage your shop, listings, and customer orders from one place.</p>
-    <div class="seller-entry-actions">
-      <a href="login.html?next=seller-dashboard.html" class="btn btn-primary">Sign in</a>
-      <a href="register.html?next=seller-dashboard.html" class="btn btn-outline">Create an account</a>
+
+    <div id="seller-require-auth" class="seller-entry" style="display:none">
+      <h2>Sign in to your Maker Studio</h2>
+      <p>Open your personal storefront and share your handmade creations with the Iloilo community.</p>
+      <div class="seller-entry-actions">
+        <a href="login.html?next=seller-dashboard.html" class="btn btn-primary">Sign in</a>
+        <a href="register.html?next=seller-dashboard.html" class="btn btn-outline">Create an account</a>
+      </div>
+    </div>
+
+    <div id="seller-account-pending" class="seller-entry" style="display:none">
+      <h2>Account review in progress</h2>
+      <p id="seller-account-pending-copy">Your account needs administrator approval before you can open a shop.</p>
+      <a href="profile.html" class="btn btn-outline">View your account status</a>
+    </div>
+
+    <div id="seller-onboard" class="content-box" style="display:none; margin-bottom: var(--space-6)">
+      <h2 style="margin-top:0">Open Your Maker Shop</h2>
+      <p class="text-secondary">Set up your storefront profile to start publishing handmade goods on YouMadeIt.</p>
+      <form id="onboard-form">
+        <div class="grid grid-cols-2" style="gap: 1rem;">
+          <div class="form-group">
+            <label for="shop-name">Shop name</label>
+            <input type="text" id="shop-name" class="form-input" required placeholder="e.g. Hablon &amp; Clay Studio">
+          </div>
+          <div class="form-group">
+            <label for="shop-slug">Shop URL slug</label>
+            <input type="text" id="shop-slug" class="form-input" required placeholder="hablon-clay-studio" pattern="[a-z0-9-]+">
+            <p class="form-hint" style="margin-top:0.25rem">Lowercase letters, numbers, and hyphens only.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="shop-location">Studio location</label>
+          <input type="text" id="shop-location" class="form-input" value="Iloilo City, Iloilo" placeholder="e.g. Jaro, Iloilo City">
+        </div>
+        <div class="form-group">
+          <label for="shop-desc">Shop story &amp; description</label>
+          <textarea id="shop-desc" class="form-textarea" rows="3" placeholder="Tell buyers what you make and how you craft your pieces…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="onboard-submit">Create Shop</button>
+      </form>
+    </div>
+
+    <div id="seller-workspace" style="display:none">
+      <div id="seller-stats" class="stat-grid" style="margin-bottom: var(--space-6)"></div>
+
+      <div class="grid grid-cols-2" style="gap: 1.5rem; align-items: start; margin-bottom: var(--space-6)">
+        <section class="content-box">
+          <div class="flex-between" style="margin-bottom: 0.75rem">
+            <h3 style="margin:0">Recent Orders</h3>
+            <a href="seller-orders.html" class="btn btn-ghost btn-sm">Manage all &rarr;</a>
+          </div>
+          <div id="seller-recent-orders"></div>
+        </section>
+
+        <section class="content-box" id="notifications">
+          <div class="flex-between" style="margin-bottom: 0.75rem">
+            <h3 style="margin:0">Notifications</h3>
+            <span id="seller-notif-badge" class="badge badge-outline">0 unread</span>
+          </div>
+          <div id="seller-notifications" class="admin-queue-list"></div>
+        </section>
+      </div>
+
+      <div class="grid grid-cols-2" style="gap: 1.5rem; align-items: start;">
+        <section class="content-box">
+          <h3 style="margin-top:0">Storefront Settings &amp; Policies</h3>
+          <form id="shop-settings-form">
+            <div class="grid grid-cols-2" style="gap:0.85rem">
+              <div class="form-group">
+                <label for="edit-shop-name">Shop name</label>
+                <input type="text" id="edit-shop-name" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label for="edit-shop-location">Location</label>
+                <input type="text" id="edit-shop-location" class="form-input" placeholder="e.g. Molo, Iloilo City">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-shop-desc">Description</label>
+              <textarea id="edit-shop-desc" class="form-textarea" style="min-height:86px"></textarea>
+            </div>
+            <div class="grid grid-cols-2" style="gap:0.85rem">
+              <div class="form-group">
+                <label for="edit-shop-processing">Processing time</label>
+                <input type="text" id="edit-shop-processing" class="form-input" placeholder="e.g. 1–3 business days">
+              </div>
+              <div class="form-group">
+                <label for="edit-shop-email">Public shop contact email (optional)</label>
+                <input type="email" id="edit-shop-email" class="form-input" placeholder="studio@example.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-shop-shipping">Shipping &amp; meetup info</label>
+              <input type="text" id="edit-shop-shipping" class="form-input" placeholder="e.g. Iloilo meetup &amp; LBC/J&amp;T nationwide">
+            </div>
+            <div class="form-group">
+              <label for="edit-shop-return">Return policy</label>
+              <input type="text" id="edit-shop-return" class="form-input" placeholder="e.g. 7-day replacement for transit damage">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" id="shop-settings-save">Save Storefront Settings</button>
+          </form>
+        </section>
+
+        <section class="content-box" id="inquiries">
+          <div class="flex-between" style="margin-bottom:0.75rem">
+            <h3 style="margin:0">Buyer Inquiries</h3>
+            <span id="seller-inq-count" class="badge badge-outline">0 messages</span>
+          </div>
+          <div id="seller-inquiries-list" class="admin-queue-list"></div>
+        </section>
+      </div>
     </div>
   </div>
-  <div id="seller-account-pending" class="seller-entry content-box" style="display:none; max-width: none">
-    <h2>Account review in progress</h2>
-    <p id="seller-account-pending-copy">Your account needs approval before you can open a shop or place marketplace orders.</p>
-    <a href="profile.html" class="btn btn-outline">View your account</a>
-  </div>
-  <div id="seller-onboard" class="content-box" style="display:none; margin-bottom: var(--space-6)">
-    <h3 style="margin-top:0">Open your shop</h3>
-    <p>Sell your handmade goods on YouMadeIt. Create your shop to start listing products.</p>
-    <form id="onboard-form">
-      <div class="form-group"><label>Shop name</label><input type="text" id="shop-name" class="form-input" required></div>
-      <div class="form-group"><label>Shop URL (slug)</label><input type="text" id="shop-slug" class="form-input" required placeholder="my-ceramics-shop"><p class="form-hint">Your shop will be at /seller-shop.html?slug=...</p></div>
-      <div class="form-group"><label>Shop description</label><textarea id="shop-desc" class="form-input" rows="2"></textarea></div>
-      <button type="submit" class="btn btn-primary">Create shop</button>
-    </form>
-  </div>
-  <div id="seller-stats" class="stat-grid" style="margin-bottom: var(--space-6)"></div>
-  <div class="content-box" id="seller-recent-box" style="display:none; margin-bottom: var(--space-6)">
-    <div id="seller-order-heading" class="flex-between" style="display:none; margin-bottom: var(--space-3)"><h3 style="margin:0">Recent orders</h3><a href="seller-orders.html" class="btn-ghost">View all &rarr;</a></div>
-    <div id="seller-recent-orders" style="display:none"></div>
-  </div>
-  <div class="content-box" id="seller-products-box" style="display:none">
-    <div id="seller-products-heading" style="display:none"><h3 style="margin-top:0">Your products</h3><a href="seller-products.html" class="btn btn-outline">Manage products &rarr;</a></div>
-  </div>
-</div>
+</main>
+
 <script type="module" src="/js/pages/seller-dashboard.js"></script>
 </body>
 </html>
